@@ -9,7 +9,9 @@ export default function InteractiveBackground() {
   // Generar elementos decorativos en posiciones aleatorias
   useEffect(() => {
     const generateArrows = () => {
-      const arrowCount = 40; // Cantidad de elementos
+      // Cantidad responsive de elementos según el ancho de pantalla
+      const isMobile = window.innerWidth < 768;
+      const arrowCount = isMobile ? 20 : 40; // Menos burbujas en móvil
       const newArrows = [];
 
       for (let i = 0; i < arrowCount; i++) {

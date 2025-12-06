@@ -68,7 +68,7 @@ export default function StorePage() {
         {cards.map((card, index) => (
           <motion.div
             key={card.id}
-            layoutId={`card-${card.id}`}
+
             onClick={() => setSelectedCard(card)}
             className="card bg-base-200 shadow-lg hover:shadow-xl cursor-pointer group"
             initial={{ opacity: 0, y: 50 }}
@@ -108,6 +108,7 @@ export default function StorePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setSelectedCard(null)}
               className="fixed inset-0 bg-black/60 backdrop-blur-md z-40"
               style={{ backdropFilter: "blur(10px)" }}
@@ -115,16 +116,19 @@ export default function StorePage() {
 
             {/* Card expandida */}
             <motion.div
-              layoutId={`card-${selectedCard.id}`}
               className="fixed inset-0 flex items-center justify-center z-50 p-8"
               onClick={() => setSelectedCard(null)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
               <motion.div
                 className="card bg-base-100 w-full max-w-3xl shadow-2xl"
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.8 }}
-                transition={{ duration: 0.3 }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <figure className="h-96">
