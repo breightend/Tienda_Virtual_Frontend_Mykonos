@@ -1,7 +1,12 @@
 import { Moon, ShoppingCart, Sun, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "motion/react";
+import {
+  motion,
+  useScroll,
+  useMotionValueEvent,
+  AnimatePresence,
+} from "motion/react";
 
 export default function Navbar() {
   const [theme, setTheme] = useState(
@@ -53,7 +58,7 @@ export default function Navbar() {
   const goToLogin = () => {
     setLocation("/login");
     setMobileMenuOpen(false);
-  }
+  };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -67,7 +72,7 @@ export default function Navbar() {
   const goToContactUs = () => {
     setLocation("/contact-us");
     setMobileMenuOpen(false);
-  }
+  };
 
   return (
     <>
@@ -101,7 +106,17 @@ export default function Navbar() {
             TIENDA
             <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
           </motion.button>
-          
+
+          <motion.button
+            className="btn btn-ghost font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
+            onClick={goToContactUs}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            CONTACTANOS
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
+          </motion.button>
+
           <label className="swap swap-rotate">
             <input
               type="checkbox"
@@ -133,7 +148,10 @@ export default function Navbar() {
                   <span className="text-lg font-bold">8 Items</span>
                   <span className="text-info">Subtotal: $999</span>
                   <div className="card-actions">
-                    <button onClick={goToShoppingCart} className="btn btn-primary btn-block">
+                    <button
+                      onClick={goToShoppingCart}
+                      className="btn btn-primary btn-block"
+                    >
                       Ir al carrito
                     </button>
                   </div>
@@ -246,7 +264,7 @@ export default function Navbar() {
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 0.15 }}
               ></motion.div>
-              
+
               <motion.button
                 className="btn btn-ghost btn-lg justify-start font-light tracking-widest text-base-content text-xl"
                 onClick={goToContactUs}
@@ -257,7 +275,6 @@ export default function Navbar() {
               >
                 Contactanos
               </motion.button>
-
 
               {/* Cart */}
               <motion.div
@@ -270,7 +287,9 @@ export default function Navbar() {
                   <ShoppingCart className="h-6 w-6" />
                   <div>
                     <p className="font-semibold">Carrito</p>
-                    <p className="text-sm text-base-content/70">8 Items - $999</p>
+                    <p className="text-sm text-base-content/70">
+                      8 Items - $999
+                    </p>
                   </div>
                 </div>
                 <span className="badge badge-primary">8</span>
