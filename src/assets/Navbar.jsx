@@ -74,6 +74,11 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
+  const goToMyPurchases = () => {
+    setLocation("/my-purchases");
+    setMobileMenuOpen(false);
+  };
+
   return (
     <>
       <motion.div
@@ -109,6 +114,16 @@ export default function Navbar() {
 
           <motion.button
             className="btn btn-ghost font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
+            onClick={goToMyPurchases}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            MI COMPRAS
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
+          </motion.button>
+
+          <motion.button
+            className="btn btn-ghost font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
             onClick={goToContactUs}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -117,7 +132,8 @@ export default function Navbar() {
             <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
           </motion.button>
 
-          <label className="swap swap-rotate">
+
+            <label className="swap swap-rotate">
             <input
               type="checkbox"
               className="theme-controller"
@@ -264,6 +280,26 @@ export default function Navbar() {
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 0.15 }}
               ></motion.div>
+
+
+              <motion.button
+                className="btn btn-ghost btn-lg justify-start font-light tracking-widest text-base-content text-xl"
+                onClick={goToMyPurchases}
+                initial={{ x: 50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Mis Compras
+              </motion.button>
+
+              <motion.div
+                className="divider"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.15 }}
+              ></motion.div>
+
 
               <motion.button
                 className="btn btn-ghost btn-lg justify-start font-light tracking-widest text-base-content text-xl"
