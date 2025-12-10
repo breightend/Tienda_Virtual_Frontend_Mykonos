@@ -129,7 +129,7 @@ export default function LandingPage() {
         className="bg-base-100" 
         style={{ 
           marginTop: "-64px",
-          scrollSnapType: "y mandatory",
+          scrollSnapType: "y proximity",
           overflowY: "scroll",
           height: "100vh"
         }}
@@ -184,89 +184,316 @@ export default function LandingPage() {
       {/* Call to Action Section */}
       <motion.div
         ref={ctaRef}
-        className="min-h-screen flex items-center justify-center bg-base-100 px-4"
+        className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
         style={{ scrollSnapAlign: "start" }}
         initial="offscreen"
         whileInView="onscreen"
         viewport={{ amount: 0.5 }}
       >
-        <motion.div className="text-center max-w-3xl w-full" variants={cardVariants}>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-6 text-base-content tracking-wide px-4">
-            Explore Nuestra Colección
-          </h2>
-          <div className="w-16 h-px bg-primary mx-auto mb-8"></div>
-          <p className="text-base sm:text-lg md:text-xl text-base-content/70 mb-12 leading-relaxed px-4">
-            Prendas cuidadosamente seleccionadas para su guardarropa. Cada pieza
-            cuenta una historia de elegancia y distinción.
-          </p>
-          <motion.button
-            className="btn btn-primary btn-md sm:btn-lg px-8 sm:px-12 text-base sm:text-lg font-light tracking-wider"
-            onClick={goToStore}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
+        {/* Fondo con gradiente sutil */}
+        <div className="absolute inset-0 bg-gradient-to-br from-base-200 via-base-100 to-base-200"></div>
+        
+        <motion.div 
+          className="text-center max-w-4xl w-full relative z-10" 
+          variants={cardVariants}
+        >
+          {/* Título principal */}
+          <motion.h2 
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light mb-6 text-base-content tracking-wide px-4"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            VISITAR TIENDA
-          </motion.button>
+            Explore Nuestra Colección
+          </motion.h2>
+          
+          {/* Línea decorativa */}
+          <motion.div 
+            className="w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mb-8"
+            initial={{ width: 0 }}
+            whileInView={{ width: 96 }}
+            transition={{ duration: 1, delay: 0.3 }}
+          ></motion.div>
+          
+          {/* Descripción */}
+          <motion.p 
+            className="text-lg sm:text-xl md:text-2xl text-base-content/80 mb-4 leading-relaxed px-4 max-w-3xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            Prendas cuidadosamente seleccionadas para su guardarropa.
+          </motion.p>
+          
+          <motion.p 
+            className="text-base sm:text-lg text-base-content/60 mb-12 px-4 max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            Cada pieza cuenta una historia de elegancia y distinción.
+          </motion.p>
+          
+          {/* Botón mejorado con efectos */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
+            <motion.button
+              className="btn btn-primary btn-lg px-12 sm:px-16 text-lg sm:text-xl font-light tracking-widest relative overflow-hidden group shadow-2xl"
+              onClick={goToStore}
+              whileHover={{ scale: 1.08, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {/* Efecto de brillo al hover */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+              
+              <span className="relative flex items-center gap-3">
+                VISITAR TIENDA
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  →
+                </motion.span>
+              </span>
+            </motion.button>
+          </motion.div>
+          
+          {/* Texto adicional sutil */}
+          <motion.p
+            className="text-sm text-base-content/40 mt-8 font-light"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1 }}
+          >
+            Descubre las últimas tendencias
+          </motion.p>
         </motion.div>
       </motion.div>
 
-      {/* Features Section */}
+      {/* Features Section - Rediseñada */}
       <motion.div
         ref={featuresRef}
-        className="min-h-screen bg-base-200 py-12 sm:py-16 md:py-20 px-4"
+        className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 py-12 sm:py-16 md:py-20 px-4"
         style={{ scrollSnapAlign: "start" }}
         initial="offscreen"
         whileInView="onscreen"
         viewport={{ amount: 0.3 }}
       >
-        <div className="max-w-6xl mx-auto">
-          <motion.h2
-            className="text-3xl sm:text-4xl md:text-5xl font-light text-center mb-4 text-base-content tracking-wide px-4"
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <motion.div
+            className="text-center mb-12 sm:mb-16"
             variants={cardVariants}
           >
-            Excelencia en Cada Detalle
-          </motion.h2>
-          <motion.div
-            className="w-16 h-px bg-primary mx-auto mb-8 sm:mb-12 md:mb-16"
-            variants={cardVariants}
-          ></motion.div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-4 text-base-content tracking-wide px-4">
+              Nuestra Esencia
+            </h2>
+            <div className="w-16 h-px bg-primary mx-auto mb-6"></div>
+            <p className="text-base-content/70 text-base sm:text-lg max-w-2xl mx-auto px-4">
+              Desde Entre Ríos para el mundo, cada prenda cuenta una historia de calidad y dedicación
+            </p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 md:gap-12">
-            {[
-              {
-                title: "Calidad Premium",
-                description:
-                  "Tejidos selectos y confección artesanal para garantizar durabilidad y elegancia.",
-              },
-              {
-                title: "Diseño Atemporal",
-                description:
-                  "Colecciones que trascienden tendencias, perfecto balance entre clásico y contemporáneo.",
-              },
-              {
-                title: "Experiencia Única",
-                description:
-                  "Servicio personalizado y atención al detalle en cada compra.",
-              },
-            ].map((feature, index) => (
+          {/* Sección de Productos con Imagen Grande */}
+          <motion.div
+            className="mb-12 sm:mb-20"
+            variants={cardVariants}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <motion.div
-                key={index}
-                className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow"
-                variants={cardVariants}
-                whileHover={{ y: -10 }}
+                className="order-2 lg:order-1"
+                whileHover={{ x: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="card-body items-center text-center">
-                  <h3 className="card-title text-xl sm:text-2xl font-light text-base-content mb-4">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm sm:text-base text-base-content/70 leading-relaxed">
-                    {feature.description}
-                  </p>
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 text-base-content">
+                  Colección Cuidadosamente Seleccionada
+                </h3>
+                <div className="w-12 h-px bg-primary/50 mb-6"></div>
+                <p className="text-base-content/80 text-base sm:text-lg leading-relaxed mb-6">
+                  Cada prenda en nuestra colección es elegida con criterio experto, 
+                  combinando las últimas tendencias con la atemporalidad que caracteriza 
+                  al buen vestir.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Variedad de estilos para cada ocasión</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Talles pensados para todos</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Renovación constante de stock</span>
+                  </div>
                 </div>
               </motion.div>
-            ))}
-          </div>
+              
+              <motion.div
+                className="order-1 lg:order-2"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="/src/assets/images/percheroConcordia.jpg"
+                    alt="Perchero de Concordia"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Sección de Telas */}
+          <motion.div
+            className="mb-12 sm:mb-20"
+            variants={cardVariants}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="/src/assets/images/fabric_textures.png"
+                    alt="Texturas y Colores de Telas Premium"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ x: 10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 text-base-content">
+                  Materiales de Primera Calidad
+                </h3>
+                <div className="w-12 h-px bg-primary/50 mb-6"></div>
+                <p className="text-base-content/80 text-base sm:text-lg leading-relaxed mb-6">
+                  Trabajamos exclusivamente con telas premium que garantizan 
+                  comodidad, durabilidad y un aspecto impecable lavado tras lavado.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Algodón peinado de alta densidad</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Telas con certificación de calidad</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Colores que perduran en el tiempo</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Sección de Detalles */}
+          <motion.div
+            className="mb-12 sm:mb-20"
+            variants={cardVariants}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <motion.div
+                className="order-2 lg:order-1"
+                whileHover={{ x: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 text-base-content">
+                  Atención a Cada Detalle
+                </h3>
+                <div className="w-12 h-px bg-primary/50 mb-6"></div>
+                <p className="text-base-content/80 text-base sm:text-lg leading-relaxed mb-6">
+                  La excelencia está en los pequeños detalles: costuras reforzadas, 
+                  terminaciones prolijas y un control de calidad riguroso en cada prenda.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Costuras dobles en puntos críticos</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Etiquetas suaves y discretas</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-primary text-xl">✓</span>
+                    <span className="text-base-content/70">Inspección individual antes de la venta</span>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div
+                className="order-1 lg:order-2"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="rounded-2xl overflow-hidden shadow-2xl">
+                  <img
+                    src="/src/assets/images/clothing_details.png"
+                    alt="Detalles de Confección Premium"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Sección Entre Ríos - Banner especial */}
+          <motion.div
+            className="relative rounded-2xl overflow-hidden shadow-2xl"
+            variants={cardVariants}
+            whileHover={{ scale: 1.01 }}
+          >
+            <div className="relative h-64 sm:h-80 md:h-96">
+              <img
+                src="/src/assets/images/entre_rios.jpg"
+                alt="Entre Ríos, Argentina"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-base-300/95 via-base-300/80 to-transparent"></div>
+              
+              <div className="absolute inset-0 flex items-center">
+                <div className="max-w-2xl px-6 sm:px-12">
+                  <motion.h3
+                    className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 text-base-content"
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    Orgullosamente Entrerrianos
+                  </motion.h3>
+                  <motion.div
+                    className="w-12 h-px bg-primary mb-4"
+                    initial={{ width: 0 }}
+                    whileInView={{ width: 48 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                  ></motion.div>
+                  <motion.p
+                    className="text-base-content/90 text-sm sm:text-base md:text-lg leading-relaxed"
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                  >
+                    Desde el corazón de Entre Ríos, llevamos moda de calidad a toda la región. 
+                    Con presencia en Paraná y Concordia, somos parte de la identidad entrerriana, 
+                    combinando la calidez de nuestra tierra con el profesionalismo y la excelencia 
+                    que nos caracteriza.
+                  </motion.p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </motion.div>
 
@@ -317,7 +544,7 @@ export default function LandingPage() {
                 <div className="space-y-2 text-sm sm:text-base text-base-content/70">
                   <p className="flex items-center gap-2">
                     <span className="font-light">📍</span>
-                    <span>Peatonal San Martin 695, Paraná, Entre Ríos</span>
+                    <span>Peatonal San Martin695, Paraná, Entre Ríos</span>
                   </p>
                   <p className="flex items-center gap-2">
                     <span className="font-light">📞</span>
@@ -370,7 +597,7 @@ export default function LandingPage() {
               </div>
               <figure className="lg:w-1/2 lg:order-2 h-64 sm:h-80 lg:h-auto">
                 <img
-                  src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&q=80"
+                  src="src/assets/images/generalConcordia.jpg"
                   alt="Sucursal Plaza"
                   className="w-full h-full object-cover"
                 />

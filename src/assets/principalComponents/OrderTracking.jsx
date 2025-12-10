@@ -60,6 +60,22 @@ export default function OrderTracking() {
   const getTrackingSteps = () => {
     const status = order?.shipping_status || "pendiente";
     
+    // If we have detailed tracking history, use that
+    if (order?.tracking_history && order.tracking_history.length > 0) {
+      return order.tracking_history.map((history, index) => ({
+        id: history.id,
+        title: history.status,
+        description: history.description || "Actualización de estado",
+        location: history.location,
+        timestamp: history.created_at,
+        changedBy: history.changed_by,
+        icon: getIconForStatus(history.status),
+        completed: true,
+        active: index === order.tracking_history.length - 1,
+      }));
+    }
+    
+    // Fallback to default steps if no tracking history
     const steps = [
       {
         id: 1,
@@ -99,6 +115,17 @@ export default function OrderTracking() {
     }));
   };
 
+  const getIconForStatus = (status) => {
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes("preparando") || statusLower.includes("pendiente")) return "📦";
+    if (statusLower.includes("empaquetado") || statusLower.includes("empacado")) return "📦";
+    if (statusLower.includes("despachado") || statusLower.includes("enviado") || statusLower.includes("camino")) return "🚚";
+    if (statusLower.includes("listo") || statusLower.includes("retiro")) return "🏪";
+    if (statusLower.includes("entregado") || statusLower.includes("retirado") || statusLower.includes("completado")) return "✅";
+    if (statusLower.includes("cancelado")) return "❌";
+    return "📍";
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-base-200 flex items-center justify-center">
@@ -136,6 +163,7 @@ export default function OrderTracking() {
   }
 
   const trackingSteps = getTrackingSteps();
+  const hasDetailedHistory = order?.tracking_history && order.tracking_history.length > 0;
 
   return (
     <div className="min-h-screen bg-base-200 py-12 px-4">
@@ -170,7 +198,7 @@ export default function OrderTracking() {
         >
           <div className="card-body">
             <h2 className="text-2xl font-light tracking-wide mb-6">
-              Estado del Pedido
+              {hasDetailedHistory ? "Historial Detallado" : "Estado del Pedido"}
             </h2>
 
             {/* Timeline */}
@@ -222,7 +250,29 @@ export default function OrderTracking() {
                     >
                       {step.description}
                     </p>
-                    {step.active && (
+                    
+                    {/* Additional details for tracking history */}
+                    {hasDetailedHistory && (
+                      <>
+                        {step.location && (
+                          <p className="text-xs text-base-content/50 font-light mt-1">
+                            📍 {step.location}
+                          </p>
+                        )}
+                        {step.timestamp && (
+                          <p className="text-xs text-base-content/50 font-light mt-1">
+                            🕐 {formatDate(step.timestamp)}
+                          </p>
+                        )}
+                        {step.changedBy && (
+                          <p className="text-xs text-base-content/50 font-light mt-1">
+                            👤 Actualizado por: {step.changedBy}
+                          </p>
+                        )}
+                      </>
+                    )}
+                    
+                    {step.active && !hasDetailedHistory && (
                       <span className="badge badge-primary badge-sm mt-2">
                         Estado Actual
                       </span>

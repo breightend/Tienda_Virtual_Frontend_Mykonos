@@ -2,7 +2,6 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "../context/AuthContext";
-import emailjs from '@emailjs/browser';
 
 export default function Register() {
   const [location, setLocation] = useLocation();
@@ -34,22 +33,14 @@ export default function Register() {
       return;
     }
 
+
     try {
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
       
       setShowSuccess(true);
       
-      emailjs.send(
-      import.meta.env.VITE_EMAILJS_SERVICE_ID,
-      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-      {
-        to_email: formData.email,
-        to_name: formData.fullname || formData.username,
-        verification_link: `${window.location.origin}/verify-email?token=${response.verification_token}`
-      },
-      import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-      );
+      // Backend now handles sending verification email
       
       setTimeout(() => {
         setLocation("/");

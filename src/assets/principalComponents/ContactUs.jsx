@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
-import emailjs from '@emailjs/browser';
+import axios from "axios";
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -11,6 +11,7 @@ export default function ContactUs() {
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -22,23 +23,13 @@ export default function ContactUs() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
+    setError(null);
     
     try {
-      // Send email using EmailJS
-      // TODO: Configure EmailJS credentials in .env
-      // For now, this will use the credentials from Register.jsx if configured
-      await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        {
-          to_email: 'mykonosboutique733@gmail.com',
-          from_name: formData.name,
-          from_email: formData.email,
-          phone: formData.phone || 'No proporcionado',
-          message: formData.message,
-          reply_to: formData.email
-        },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      // Send to backend API
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/contact/submit`,
+        formData
       );
       
       setSending(false);
@@ -49,10 +40,10 @@ export default function ContactUs() {
         setFormData({ name: "", email: "", phone: "", message: "" });
         setSent(false);
       }, 3000);
-    } catch (error) {
-      console.error('Error sending email:', error);
+    } catch (err) {
+      console.error('Error sending contact form:', err);
       setSending(false);
-      alert('Error al enviar el mensaje. Por favor, intenta contactarnos por WhatsApp.');
+      setError('Error al enviar el mensaje. Por favor, intenta contactarnos por WhatsApp.');
     }
   };
 
@@ -261,7 +252,7 @@ export default function ContactUs() {
                 {/* Phone */}
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-light tracking-wide">TELÉFONO (OPCIONAL)</span>
+                    <span className="label-text font-light tracking-wide mr-2">TELÉFONO (OPCIONAL)</span>
                   </label>
                   <input
                     type="tel"
@@ -275,15 +266,12 @@ export default function ContactUs() {
 
                 {/* Message */}
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-light tracking-wide">MENSAJE</span>
-                  </label>
                   <textarea
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
                     placeholder="Escribe tu mensaje aquí..."
-                    className="textarea textarea-bordered h-32 font-light"
+                    className="textarea textarea-bordered h-32 w-full font-light"
                     required
                   ></textarea>
                 </div>
@@ -323,3 +311,4 @@ export default function ContactUs() {
     </div>
   );
 }
+ 

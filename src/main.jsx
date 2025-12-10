@@ -9,30 +9,41 @@ import Register from "./assets/principalComponents/Register.jsx";
 import Login from "./assets/principalComponents/Login.jsx";
 import ContactUs from "./assets/principalComponents/ContactUs.jsx";
 import Carrito from "./assets/Carrito.jsx";
-import { Route, Router } from "wouter";
+import { Route, Router, useLocation } from "wouter";
 import { AuthProvider } from "./assets/context/AuthContext.jsx";
 import MyPurchases from "./assets/principalComponents/MyPurchases.jsx";
 import EmailVerification from "./assets/supportComponents/EmailVerification.jsx";
 import OrderTracking from "./assets/principalComponents/OrderTracking.jsx";
 
+function App() {
+  const [location] = useLocation();
+  const hideNavbar = location === "/email-verification";
+
+  return (
+    <>
+      {!hideNavbar && <Navbar />}
+      <div style={{ paddingTop: hideNavbar ? "0" : "64px" }}>
+        <Route path="/" component={LandingPage} />
+        <Route path="/store" component={StorePage} />
+        <Route path="/user-info" component={UserInfo} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path="/carrito" component={Carrito} />
+        <Route path="/contact-us" component={ContactUs} />
+        <Route path="/my-purchases" component={MyPurchases} />
+        <Route path="/email-verification" component={EmailVerification} />
+        <Route path="/order-tracking/:orderId" component={OrderTracking} />
+      </div>
+    </>
+  );
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
-      <Navbar />
-      <div style={{ paddingTop: "64px" }}>
-        <Router>
-          <Route path="/" component={LandingPage} />
-          <Route path="/store" component={StorePage} />
-          <Route path="/user-info" component={UserInfo} />
-          <Route path="/login" component={Login} />
-          <Route path="/register" component={Register} />
-          <Route path="/carrito" component={Carrito} />
-          <Route path="/contact-us" component={ContactUs} />
-          <Route path="/my-purchases" component={MyPurchases} />
-          <Route path="/email-verification" component={EmailVerification} />
-          <Route path="/order-tracking/:orderId" component={OrderTracking} />
-        </Router>
-      </div>
+      <Router>
+        <App />
+      </Router>
     </AuthProvider>
   </StrictMode>
 );
