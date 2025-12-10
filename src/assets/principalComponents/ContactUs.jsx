@@ -27,23 +27,25 @@ export default function ContactUs() {
     
     try {
       // Send to backend API
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/contact/submit`,
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/contact/submit`,
         formData
       );
       
-      setSending(false);
-      setSent(true);
-      
-      // Reset form after 3 seconds
-      setTimeout(() => {
-        setFormData({ name: "", email: "", phone: "", message: "" });
-        setSent(false);
-      }, 3000);
+      if (response.data.success) {
+        setSending(false);
+        setSent(true);
+        
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setFormData({ name: "", email: "", phone: "", message: "" });
+          setSent(false);
+        }, 3000);
+      }
     } catch (err) {
       console.error('Error sending contact form:', err);
       setSending(false);
-      setError('Error al enviar el mensaje. Por favor, intenta contactarnos por WhatsApp.');
+      setError(err.response?.data?.detail || 'Error al enviar el mensaje. Por favor, intenta contactarnos por WhatsApp.');
     }
   };
 
@@ -214,7 +216,20 @@ export default function ContactUs() {
                 <span className="font-light">¡Mensaje enviado exitosamente! Te responderemos pronto.</span>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <>
+                {error && (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="alert alert-error mb-6"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-light">{error}</span>
+                  </motion.div>
+                )}
+                <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
                   <div className="form-control">
@@ -292,6 +307,7 @@ export default function ContactUs() {
                   )}
                 </button>
               </form>
+              </>
             )}
           </div>
         </motion.div>
