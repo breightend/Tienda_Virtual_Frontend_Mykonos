@@ -19,6 +19,7 @@ import AdminDashboard from "./assets/principalComponents/AdminDashboard.jsx";
 import AdminProductList from "./assets/principalComponents/AdminProductList.jsx";
 import AdminOrders from "./assets/principalComponents/AdminOrders.jsx";
 import AdminUsers from "./assets/principalComponents/AdminUsers.jsx";
+import AdminDiscounts from "./assets/principalComponents/AdminDiscounts.jsx";
 
 function App() {
   const [location] = useLocation();
@@ -51,6 +52,9 @@ function App() {
         </Route>
         <Route path="/admin/users">
           {() => <ProtectedRoute component={AdminUsers} />}
+        </Route>
+        <Route path="/admin/discounts">
+          {() => <ProtectedRoute component={AdminDiscounts} />}
         </Route>
       </div>
     </>
