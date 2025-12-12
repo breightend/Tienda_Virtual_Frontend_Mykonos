@@ -280,21 +280,15 @@ export default function LandingPage() {
         </motion.div>
       </motion.div>
 
-      {/* Features Section - Rediseñada */}
-      <motion.div
+      {/* Features Section - Optimizada para rendimiento */}
+      <div
         ref={featuresRef}
         className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 py-12 sm:py-16 md:py-20 px-4"
         style={{ scrollSnapAlign: "start" }}
-        initial="offscreen"
-        whileInView="onscreen"
-        viewport={{ amount: 0.3 }}
       >
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <motion.div
-            className="text-center mb-12 sm:mb-16"
-            variants={cardVariants}
-          >
+          <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-4 text-base-content tracking-wide px-4">
               Nuestra Esencia
             </h2>
@@ -302,19 +296,12 @@ export default function LandingPage() {
             <p className="text-base-content/70 text-base sm:text-lg max-w-2xl mx-auto px-4">
               Desde Entre Ríos para el mundo, cada prenda cuenta una historia de calidad y dedicación
             </p>
-          </motion.div>
+          </div>
 
           {/* Sección de Productos con Imagen Grande */}
-          <motion.div
-            className="mb-12 sm:mb-20"
-            variants={cardVariants}
-          >
+          <div className="mb-12 sm:mb-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <motion.div
-                className="order-2 lg:order-1"
-                whileHover={{ x: -10 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="order-2 lg:order-1">
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 text-base-content">
                   Colección Cuidadosamente Seleccionada
                 </h3>
@@ -338,47 +325,36 @@ export default function LandingPage() {
                     <span className="text-base-content/70">Renovación constante de stock</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
               
-              <motion.div
-                className="order-1 lg:order-2"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="order-1 lg:order-2">
                 <div className="rounded-2xl overflow-hidden shadow-2xl">
                   <img
                     src={percheroConcordia}
                     alt="Perchero de Concordia"
                     className="w-full h-auto object-cover"
+                    loading="lazy"
                   />
                 </div>
-              </motion.div>
+              </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Sección de Telas */}
-          <motion.div
-            className="mb-12 sm:mb-20"
-            variants={cardVariants}
-          >
+          <div className="mb-12 sm:mb-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div>
                 <div className="rounded-2xl overflow-hidden shadow-2xl">
                   <img
                     src={fabricTextures}
                     alt="Texturas y Colores de Telas Premium"
                     className="w-full h-auto object-cover"
+                    loading="lazy"
                   />
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.div
-                whileHover={{ x: 10 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div>
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 text-base-content">
                   Materiales de Primera Calidad
                 </h3>
@@ -401,21 +377,14 @@ export default function LandingPage() {
                     <span className="text-base-content/70">Colores que perduran en el tiempo</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Sección de Detalles */}
-          <motion.div
-            className="mb-12 sm:mb-20"
-            variants={cardVariants}
-          >
+          <div className="mb-12 sm:mb-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <motion.div
-                className="order-2 lg:order-1"
-                whileHover={{ x: -10 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="order-2 lg:order-1">
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 text-base-content">
                   Atención a Cada Detalle
                 </h3>
@@ -438,71 +407,50 @@ export default function LandingPage() {
                     <span className="text-base-content/70">Inspección individual antes de la venta</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
               
-              <motion.div
-                className="order-1 lg:order-2"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="order-1 lg:order-2">
                 <div className="rounded-2xl overflow-hidden shadow-2xl">
                   <img
                     src={clothingDetails}
                     alt="Detalles de Confección Premium"
                     className="w-full h-auto object-cover"
+                    loading="lazy"
                   />
                 </div>
-              </motion.div>
+              </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Sección Entre Ríos - Banner especial */}
-          <motion.div
-            className="relative rounded-2xl overflow-hidden shadow-2xl"
-            variants={cardVariants}
-            whileHover={{ scale: 1.01 }}
-          >
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl">
             <div className="relative h-64 sm:h-80 md:h-96">
               <img
                 src={entreRios}
                 alt="Entre Ríos, Argentina"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-base-300/95 via-base-300/80 to-transparent"></div>
               
               <div className="absolute inset-0 flex items-center">
                 <div className="max-w-2xl px-6 sm:px-12">
-                  <motion.h3
-                    className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 text-base-content"
-                    initial={{ opacity: 0, x: -30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  >
+                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 text-base-content">
                     Orgullosamente Entrerrianos
-                  </motion.h3>
-                  <motion.div
-                    className="w-12 h-px bg-primary mb-4"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: 48 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                  ></motion.div>
-                  <motion.p
-                    className="text-base-content/90 text-sm sm:text-base md:text-lg leading-relaxed"
-                    initial={{ opacity: 0, x: -30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                  >
+                  </h3>
+                  <div className="w-12 h-px bg-primary mb-4"></div>
+                  <p className="text-base-content/90 text-sm sm:text-base md:text-lg leading-relaxed">
                     Desde el corazón de Entre Ríos, llevamos moda de calidad a toda la región. 
                     Con presencia en Paraná y Concordia, somos parte de la identidad entrerriana, 
                     combinando la calidez de nuestra tierra con el profesionalismo y la excelencia 
                     que nos caracteriza.
-                  </motion.p>
+                  </p>
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Informacion Sucursales*/}
       <div ref={sucursalesRef} className="bg-base-100 py-12 sm:py-16 md:py-20 px-4 min-h-screen" style={{ scrollSnapAlign: "start" }}>
