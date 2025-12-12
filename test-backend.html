@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Backend Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔌 Test Backend Connection</h1>
+    <p><strong>Backend URL:</strong> <span id="backend-url"></span></p>
+
+    <div class="test-section">
+        <h2>Test 1: Products Endpoint</h2>
+        <button onclick="testProducts()">Test /products/productos</button>
+        <div id="products-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Groups Endpoint</h2>
+        <button onclick="testGroups()">Test /groups</button>
+        <div id="groups-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Root Endpoint</h2>
+        <button onclick="testRoot()">Test /</button>
+        <div id="root-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Custom Endpoint</h2>
+        <input type="text" id="custom-endpoint" placeholder="/your/endpoint" style="width: 300px; padding: 8px;">
+        <button onclick="testCustom()">Test Custom Endpoint</button>
+        <div id="custom-result" class="result"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://api.mykonosboutique.com.ar:8080';
+        document.getElementById('backend-url').textContent = BACKEND_URL;
+
+        async function testEndpoint(endpoint, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.className = 'result info';
+            resultDiv.textContent = `Testing ${BACKEND_URL}${endpoint}...\n\nWaiting for response...`;
+
+            try {
+                const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const contentType = response.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    data = await response.text();
+                }
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ SUCCESS (${response.status})\n\n` +
+                        `URL: ${BACKEND_URL}${endpoint}\n` +
+                        `Status: ${response.status} ${response.statusText}\n` +
+                        `Content-Type: ${contentType}\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ERROR (${response.status})\n\n` +
+                        `URL: ${BACKEND_URL}${endpoint}\n` +
+                        `Status: ${response.status} ${response.statusText}\n` +
+                        `Content-Type: ${contentType}\n\n` +
+                        `Response:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ NETWORK ERROR\n\n` +
+                    `URL: ${BACKEND_URL}${endpoint}\n` +
+                    `Error: ${error.message}\n\n` +
+                    `This could mean:\n` +
+                    `- CORS is not configured on the backend\n` +
+                    `- Backend is not running\n` +
+                    `- Network/firewall issue\n` +
+                    `- SSL certificate issue`;
+            }
+        }
+
+        function testProducts() {
+            testEndpoint('/products/productos', 'products-result');
+        }
+
+        function testGroups() {
+            testEndpoint('/groups', 'groups-result');
+        }
+
+        function testRoot() {
+            testEndpoint('/', 'root-result');
+        }
+
+        function testCustom() {
+            const endpoint = document.getElementById('custom-endpoint').value;
+            if (!endpoint) {
+                alert('Please enter an endpoint');
+                return;
+            }
+            const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+            testEndpoint(normalizedEndpoint, 'custom-result');
+        }
+    </script>
+</body>
+</html>
