@@ -7,7 +7,7 @@ import {
   updateDiscount,
   deleteDiscount,
 } from "../services/adminService";
-import { fetchHierarchicalGroups } from "../services/groupService";
+import { fetchGroups } from "../services/groupService";
 import { Percent, Trash2, Edit, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -37,7 +37,7 @@ export default function AdminDiscounts() {
       setLoading(true);
       const [discountsData, groupsData] = await Promise.all([
         getAllDiscounts(),
-        fetchHierarchicalGroups(),
+        fetchGroups(),
       ]);
       setDiscounts(discountsData);
       setGroups(groupsData);
