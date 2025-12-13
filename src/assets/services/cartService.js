@@ -31,20 +31,23 @@ export const getCart = async () => {
   }
 };
 
+
+
 /**
  * Add product to cart
  * @param {number} productId - Product ID
+ * @param {number} variantId - Product variant ID
  * @param {number} quantity - Quantity to add
  * @returns {Promise<Object>} Updated cart item
  */
-export const addToCart = async (productId, quantity = 1) => {
+export const addToCart = async (productId, quantity ,variantId) => {
   try {
     const token = getAuthToken();
     if (!token) throw new Error("Authentication required");
 
     const response = await axios.post(
       `${API_URL}/cart/items`,
-      { product_id: productId, quantity },
+      { product_id: productId, quantity: quantity, variant_id: variantId },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;

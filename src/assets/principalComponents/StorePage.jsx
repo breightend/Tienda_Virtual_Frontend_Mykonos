@@ -104,10 +104,10 @@ export default function StorePage() {
     }
   };
 
-  const addToCartDirectly = async (productId, qty) => {
+  const addToCartDirectly = async (productId, qty, variantId) => {
     try {
       setAddingToCart(true);
-      const result = await addToCart(productId, qty);
+      const result = await addToCart(productId, qty, variantId);
       
       if (result.success) {
         toast.success("¡Producto agregado al carrito!");
@@ -121,13 +121,17 @@ export default function StorePage() {
       setAddingToCart(false);
     }
   };
-
+  if (selectedProduct) {
+    console.log(
+      selectedProduct.id, quantity, selectedProduct.variantes[0].variant_id
+    )
+  }
   const handleConfirmAddToCart = async () => {
     if (!selectedProduct) return;
 
     // Validate variant selection
-    const uniqueColors = getUniqueColors(selectedProduct.variantes);
-    const uniqueSizes = getUniqueSizes(selectedProduct.variantes);
+    const uniqueColors = getUniqueColors(selectedProduct.variantes.color);
+    const uniqueSizes = getUniqueSizes(selectedProduct.variantes.talle);
 
     if (uniqueColors.length > 0 && !selectedColor) {
       toast.error("Por favor selecciona un color");
@@ -139,10 +143,35 @@ export default function StorePage() {
       return;
     }
 
+    // Find the specific variant logic
+    let variantId = null;
+
+    if (selectedProduct.variantes.length === 1) {
+      variantId = selectedProduct.variantes[0].variant_id.toString();
+    }
+
+    if (selectedProduct.variantes.length !== 0) {
+      console.log(selectedProduct.id, quantity, variantId);
+    }
+    
+    // If we have variants, we must find the matching one
+    if (selectedProduct.variantes && selectedProduct.variantes.length > 0) {
+      const selectedVariant = selectedProduct.variantes.find(v => 
+        (!selectedColor || v.color === selectedColor) && 
+        (!selectedSize || v.talle === selectedSize)
+      );
+
+      if (!selectedVariant) {
+        toast.error("Esta combinación de color y talle no está disponible");
+        return;
+      }
+      variantId = selectedVariant.variant_id.toString();
+    }
+    
     // Add to cart
     try {
       setAddingToCart(true);
-      const result = await addToCart(selectedProduct.id, quantity);
+      const result = await addToCart(selectedProduct.id, quantity, variantId);
       
       if (result.success) {
         toast.success(`¡${selectedProduct.nombre_web} agregado al carrito!`);
@@ -250,7 +279,7 @@ export default function StorePage() {
 
             {/* Products Grid */}
             {!loading && !error && products.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map((product, index) => {
                   const uniqueColors = getUniqueColors(product.variantes);
                   const uniqueSizes = getUniqueSizes(product.variantes);

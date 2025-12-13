@@ -506,12 +506,12 @@ export default function LandingPage() {
                     <span className="font-light">📞</span>
                     <span>+54 9 343 509 1341</span>
                   </p>
-                  <p className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <div className="flex">
                       <span className="font-light">🕐</span>
                       <span>Lunes a Sábado 8:30 a 12:30 16:30 a 20:30hs</span>
                     </div>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -48,13 +48,12 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const addToCart = async (productId, quantity = 1) => {
+  const addToCart = async (productId, quantity, variantId) => {
     try {
       setLoading(true);
-      await addToCartAPI(productId, quantity);
-      await loadCart(); // Reload cart to get updated data
+      await addToCartAPI(productId, quantity, variantId);
+      await loadCart(); 
       setError(null);
-      setTotalPrice(total_price + quantity * price);
       return { success: true };
 
     } catch (error) {
