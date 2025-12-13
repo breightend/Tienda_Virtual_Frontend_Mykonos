@@ -26,6 +26,12 @@ export default function StorePage() {
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+
+  const [seeCategory, setSeeCategory] = useState(true);
+
+  const handleSeeCategory = () => {
+    setSeeCategory(!seeCategory);
+  };
   
   const modalRef = useRef(null);
 
@@ -168,60 +174,60 @@ export default function StorePage() {
   };
 
   return (
-    <div className="bg-base-100 min-h-screen py-12 px-4">
+    <div>
+      <div className="bg-base-100 min-h-screen py-12">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-16">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
-        >
-          <h1 className="text-5xl font-light tracking-widest mb-4 text-base-content">
-            COLECCIÓN
-          </h1>
-          <div className="w-16 h-px bg-primary mx-auto"></div>
-        </motion.div>
-      </div>
+        <div className="max-w-7xl mx-auto mb-16 px-4">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <h1 className="text-5xl font-light tracking-widest mb-4 text-base-content">
+              COLECCIÓN
+            </h1>
+            <div className="w-16 h-px bg-primary mx-auto"></div>
+          </motion.div>
+        </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto">
-        <div className="flex gap-6">
-          {/* Left Sidebar - Filters */}
-          <div className="w-48 flex-shrink-0">
-            <div className="sticky top-24">
-              <CategoryFilter
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-              />
-              
-              {selectedCategory && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-base-200 rounded-lg"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold">Filtrando por:</span>
-                    <button
-                      onClick={() => setSelectedCategory(null)}
-                      className="btn btn-ghost btn-xs btn-circle"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <span className="badge badge-primary badge-sm">
-                    {selectedCategory.group_name}
-                  </span>
-                </motion.div>
-              )}
-            </div>
+      {/* Main Content - Full Width with Filters Flush Left */}
+      <div className="flex md:flex-row flex-col gap-24 pl-2 pr-2">
+        {/* Left Sidebar - Filters (Flush Left) */}
+        <div className="w-48 flex-shrink-0">
+          <div className="md:sticky top-24">
+            <CategoryFilter
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+            />
+            
+            {selectedCategory && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 bg-base-200 rounded-lg"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold">Filtrando por:</span>
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className="btn btn-ghost btn-xs btn-circle"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <span className="badge badge-primary badge-sm">
+                  {selectedCategory.group_name}
+                </span>
+              </motion.div>
+            )}
           </div>
+        </div>
 
-          {/* Right Content - Products */}
-          <div className="flex-1">
+        {/* Right Content - Products */}
+        <div className="flex-1 ">
             {/* Loading State */}
             {loading && (
               <div className="flex justify-center items-center min-h-[400px]">
@@ -348,9 +354,8 @@ export default function StorePage() {
           </div>
         </div>
       </div>
-
-      {/* Variant Selection Modal (DaisyUI) */}
-      <dialog ref={modalRef} className="modal">
+    
+    <dialog ref={modalRef} className="modal">
         <div className="modal-box">
           {selectedProduct && (
             <>
@@ -457,7 +462,7 @@ export default function StorePage() {
         <form method="dialog" className="modal-backdrop">
           <button onClick={closeVariantModal}>close</button>
         </form>
-      </dialog>
+    </dialog>
 
       {/* Expanded Product Card Modal */}
       <AnimatePresence>
@@ -566,8 +571,8 @@ export default function StorePage() {
               </motion.div>
             </motion.div>
           </>
-        )}
+        )}  
       </AnimatePresence>
     </div>
-  );
+  ) 
 }

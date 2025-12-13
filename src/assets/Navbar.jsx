@@ -12,7 +12,7 @@ import { useCart } from "./context/CartContext";
 
 export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const { itemCount } = useCart();
+  const { itemCount, totalPrice } = useCart();
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") || "lightMykonos"
   );
@@ -180,8 +180,8 @@ export default function Navbar() {
                 className="card card-compact dropdown-content bg-base-100 z-1 mt-3 w-52 shadow"
               >
                 <div className="card-body">
-                  <span className="text-lg font-bold">8 Items</span>
-                  <span className="text-info">Subtotal: $999</span>
+                  <span className="text-lg font-bold">{itemCount} Items</span>
+                  <span className="text-info">Subtotal: ${totalPrice}</span>
                   <div className="card-actions">
                     <button
                       onClick={goToShoppingCart}
@@ -369,11 +369,11 @@ export default function Navbar() {
                   <div>
                     <p className="font-semibold">Carrito</p>
                     <p className="text-sm text-base-content/70">
-                      8 Items - $999
+                      {itemCount} Items - ${totalPrice}
                     </p>
                   </div>
                 </div>
-                <span className="badge badge-primary">8</span>
+                <span className="badge badge-primary">{itemCount}</span>
               </motion.div>
 
               {/* Profile Section */}

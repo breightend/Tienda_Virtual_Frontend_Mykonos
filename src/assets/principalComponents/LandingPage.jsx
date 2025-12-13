@@ -16,6 +16,7 @@ export default function LandingPage() {
   
   // Referencias a las secciones
   const containerRef = useRef(null);
+  
   const heroRef = useRef(null);
   const ctaRef = useRef(null);
   const featuresRef = useRef(null);

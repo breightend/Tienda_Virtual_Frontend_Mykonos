@@ -18,6 +18,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [total_price, setTotalPrice] = useState(0);
 
   // Load cart when user logs in
   useEffect(() => {
@@ -53,7 +54,9 @@ export const CartProvider = ({ children }) => {
       await addToCartAPI(productId, quantity);
       await loadCart(); // Reload cart to get updated data
       setError(null);
+      setTotalPrice(total_price + quantity * price);
       return { success: true };
+
     } catch (error) {
       console.error("Error adding to cart:", error);
       let errorMessage = "Error al agregar al carrito";
@@ -128,6 +131,10 @@ export const CartProvider = ({ children }) => {
     return cart?.total_items || 0;
   };
 
+  const getTotalPrice = () => {
+    return total_price;
+  };
+
   const getSubtotal = () => {
     return cart?.subtotal || 0;
   };
@@ -142,7 +149,9 @@ export const CartProvider = ({ children }) => {
     clearCart: clearCartItems,
     refreshCart: loadCart,
     itemCount: getItemCount(),
+    totalPrice: getTotalPrice(),
     subtotal: getSubtotal(),
+    total_price: total_price,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
