@@ -58,7 +58,9 @@ const fetchProductsByCategory = async (category) => {
  */
 const fetchProductsByGroupName = async (groupName) => {
   try {
-    const response = await axios.get(`${API_URL}/productsByGroup/${encodeURIComponent(groupName)}`);
+    const response = await axios.get(
+      `${API_URL}/productsByGroup/${encodeURIComponent(groupName)}`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching products for group ${groupName}:`, error);
@@ -73,14 +75,20 @@ const fetchProductsByGroupName = async (groupName) => {
  * @param {number} offset - Number of products to skip (default: 0)
  * @returns {Promise<Array>} Array of online store products
  */
-const fetchOnlineStoreProducts = async (category = null, limit = 50, offset = 0) => {
+const fetchOnlineStoreProducts = async (
+  category = null,
+  limit = 50,
+  offset = 0
+) => {
   try {
     const params = new URLSearchParams();
-    if (category) params.append('category', category);
-    params.append('limit', limit);
-    params.append('offset', offset);
-    
-    const response = await axios.get(`${API_URL}/online-store?${params.toString()}`);
+    if (category) params.append("category", category);
+    params.append("limit", limit);
+    params.append("offset", offset);
+
+    const response = await axios.get(
+      `${API_URL}/online-store?${params.toString()}`
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching online store products:", error);
@@ -95,7 +103,9 @@ const fetchOnlineStoreProducts = async (category = null, limit = 50, offset = 0)
  */
 const fetchProductBySlug = async (slug) => {
   try {
-    const response = await axios.get(`${API_URL}/online-store/${encodeURIComponent(slug)}`);
+    const response = await axios.get(
+      `${API_URL}/online-store/${encodeURIComponent(slug)}`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching product with slug ${slug}:`, error);
@@ -117,7 +127,9 @@ const fetchAllProducts = async (providerCode = null) => {
     const token = getAuthToken();
     if (!token) throw new Error("Authentication required");
 
-    const params = providerCode ? `?provider_code=${encodeURIComponent(providerCode)}` : '';
+    const params = providerCode
+      ? `?provider_code=${encodeURIComponent(providerCode)}`
+      : "";
     const response = await axios.get(`${API_URL}/all${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -204,9 +216,13 @@ const toggleProductOnline = async (productId, data) => {
     const token = getAuthToken();
     if (!token) throw new Error("Authentication required");
 
-    const response = await axios.patch(`${API_URL}/${productId}/toggle-online`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axios.patch(
+      `${API_URL}/${productId}/toggle-online`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error(`Error toggling product ${productId} online status:`, error);
@@ -247,11 +263,65 @@ const deleteProductImage = async (imageId) => {
     const token = getAuthToken();
     if (!token) throw new Error("Authentication required");
 
-    await axios.delete(`${API_URL.replace('/products', '')}/products/images/${imageId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await axios.delete(
+      `${API_URL.replace("/products", "")}/products/images/${imageId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
   } catch (error) {
     console.error(`Error deleting image ${imageId}:`, error);
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Upload image for product (base64) - Admin only
+ * @param {number} productId - Product ID
+ * @param {File} file - Image file
+ * @returns {Promise<Object>} Image data with id and URL
+ */
+const uploadProductImage = async (productId, file) => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    // Convert file to base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const response = await axios.post(
+      `${API_URL}/${productId}/images`,
+      {
+        image_data: base64,
+        filename: file.name,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error uploading image for product ${productId}:`, error);
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Get all images for a product
+ * @param {number} productId - Product ID
+ * @returns {Promise<Array>} Array of image objects
+ */
+const getProductImages = async (productId) => {
+  try {
+    const response = await axios.get(`${API_URL}/${productId}/images`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching images for product ${productId}:`, error);
     throw error.response?.data || error;
   }
 };
@@ -260,15 +330,15 @@ const deleteProductImage = async (imageId) => {
 // EXPORTS
 // ============================================================================
 
-export { 
+export {
   // Public endpoints
-  fetchProducts, 
-  fetchProductById, 
-  fetchProductsByCategory, 
+  fetchProducts,
+  fetchProductById,
+  fetchProductsByCategory,
   fetchProductsByGroupName,
   fetchOnlineStoreProducts,
   fetchProductBySlug,
-  
+
   // Admin endpoints
   fetchAllProducts,
   createProduct,
@@ -276,5 +346,7 @@ export {
   deleteProduct,
   toggleProductOnline,
   addProductImage,
-  deleteProductImage
+  uploadProductImage,
+  deleteProductImage,
+  getProductImages,
 };

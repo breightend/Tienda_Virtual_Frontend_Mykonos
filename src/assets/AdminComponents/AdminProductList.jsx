@@ -1,12 +1,19 @@
 import AdminLayout from "../AdminComponents/AdminLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   fetchProducts,
   fetchAllProducts,
   toggleProductOnline,
   deleteProduct,
+  updateProduct,
+  uploadProductImage,
+  deleteProductImage,
+  getProductImages,
 } from "../services/productService";
 import { motion, AnimatePresence } from "motion/react";
+import { useDropzone } from "react-dropzone";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function AdminProductList() {
   const [onlineProducts, setOnlineProducts] = useState([]);
@@ -16,7 +23,11 @@ export default function AdminProductList() {
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [error, setError] = useState(null);
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
 
   // Form state for adding/editing product
   const [formData, setFormData] = useState({
@@ -155,6 +166,109 @@ export default function AdminProductList() {
     }
   };
 
+  // Handle double click to edit product
+  const handleProductDoubleClick = (product) => {
+    setEditingProduct(product);
+    setFormData({
+      nombre_web: product.nombre_web || "",
+      descripcion_web: product.descripcion_web || "",
+      precio_web: product.precio_web || "",
+      slug: product.slug || "",
+    });
+    setExistingImages(product.images || []);
+    setUploadedImages([]);
+    setShowEditModal(true);
+  };
+
+  // Dropzone configuration
+  const onDrop = useCallback((acceptedFiles) => {
+    const newImages = acceptedFiles.map((file) =>
+      Object.assign(file, {
+        preview: URL.createObjectURL(file),
+      })
+    );
+    setUploadedImages((prev) => [...prev, ...newImages]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
+    },
+    maxSize: 5242880, // 5MB
+  });
+
+  // Remove uploaded image
+  const removeUploadedImage = (index) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Remove existing image
+  const removeExistingImage = (index) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Update product
+  const handleUpdateProduct = async () => {
+    if (!editingProduct) return;
+
+    if (!formData.nombre_web || !formData.precio_web) {
+      toast.error("El nombre y precio son requeridos");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Step 1: Upload new images
+      const uploadPromises = uploadedImages.map((file) =>
+        uploadProductImage(editingProduct.id, file)
+      );
+      const uploadedImageResults = await Promise.all(uploadPromises);
+
+      toast.success(`${uploadedImageResults.length} imágenes subidas`);
+
+      // Step 2: Delete removed images
+      const currentImageIds = existingImages.map((img) => img.id);
+      const originalImageIds =
+        editingProduct.images?.map((img) => img.id) || [];
+      const imagesToDelete = originalImageIds.filter(
+        (id) => !currentImageIds.includes(id)
+      );
+
+      const deletePromises = imagesToDelete.map((imageId) =>
+        deleteProductImage(editingProduct.id, imageId)
+      );
+      await Promise.all(deletePromises);
+
+      if (imagesToDelete.length > 0) {
+        toast.success(`${imagesToDelete.length} imágenes eliminadas`);
+      }
+
+      // Step 3: Update product data
+      const productData = {
+        nombre_web: formData.nombre_web,
+        descripcion_web: formData.descripcion_web || "",
+        precio_web: parseFloat(formData.precio_web),
+        slug: formData.slug || "",
+      };
+
+      await updateProduct(editingProduct.id, productData);
+
+      toast.success("Producto actualizado correctamente!");
+      await loadOnlineProducts();
+      setShowEditModal(false);
+      setEditingProduct(null);
+      setUploadedImages([]);
+      setExistingImages([]);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast.error(error.detail || "Error al actualizar producto");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div>
@@ -228,9 +342,14 @@ export default function AdminProductList() {
         {/* Online Products List */}
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
-            <h2 className="card-title text-primary mb-4">
-              Products in Online Store
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="card-title text-primary">
+                Products in Online Store
+              </h2>
+              <div className="badge badge-info badge-sm">
+                💡 Double click any row to edit
+              </div>
+            </div>
 
             {loading ? (
               <div className="flex justify-center items-center h-64">
@@ -257,7 +376,12 @@ export default function AdminProductList() {
                   </thead>
                   <tbody>
                     {onlineProducts.map((product) => (
-                      <tr key={product.id}>
+                      <tr
+                        key={product.id}
+                        onDoubleClick={() => handleProductDoubleClick(product)}
+                        className="cursor-pointer hover:bg-base-200 transition-colors"
+                        title="Double click to edit"
+                      >
                         <td>{product.id}</td>
                         <td className="font-medium">{product.nombre_web}</td>
                         <td>
@@ -286,9 +410,10 @@ export default function AdminProductList() {
                           <div className="flex gap-2">
                             <button
                               className="btn btn-sm btn-error btn-outline"
-                              onClick={() =>
-                                handleRemoveFromOnlineStore(product.id)
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveFromOnlineStore(product.id);
+                              }}
                             >
                               Remove
                             </button>
@@ -488,6 +613,248 @@ export default function AdminProductList() {
                           Add to Online Store
                         </button>
                       )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Edit Product Modal */}
+        <AnimatePresence>
+          {showEditModal && editingProduct && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowEditModal(false)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="fixed inset-0 flex items-center justify-center z-50 p-8"
+              >
+                <div className="card bg-base-100 w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
+                  <div className="card-body">
+                    <h2 className="card-title text-2xl mb-4">
+                      Editar producto: {editingProduct.nombre_web}
+                    </h2>
+
+                    <div className="space-y-4">
+                      {/* Product Info Form */}
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">
+                            Product Name (for web) *
+                          </span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered"
+                          value={formData.nombre_web}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nombre_web: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">
+                            Description (for web)
+                          </span>
+                        </label>
+                        <textarea
+                          className="textarea textarea-bordered h-24"
+                          value={formData.descripcion_web}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              descripcion_web: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Web Price *</span>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          className="input input-bordered"
+                          value={formData.precio_web}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              precio_web: e.target.value,
+                            })
+                          }
+                          required
+                        />
+                      </div>
+
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Slug (optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered"
+                          value={formData.slug}
+                          onChange={(e) =>
+                            setFormData({ ...formData, slug: e.target.value })
+                          }
+                          placeholder="product-name-slug"
+                        />
+                      </div>
+
+                      {/* Images Section */}
+                      <div className="divider">Product Images</div>
+
+                      {/* Existing Images */}
+                      {existingImages.length > 0 && (
+                        <div>
+                          <label className="label">
+                            <span className="label-text font-semibold">
+                              Existing Images
+                            </span>
+                          </label>
+                          <div className="grid grid-cols-3 gap-4">
+                            {existingImages.map((image, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={
+                                    image.startsWith("http")
+                                      ? image
+                                      : `${
+                                          import.meta.env.VITE_IMAGE_URL ||
+                                          "http://localhost:8080"
+                                        }${image}`
+                                  }
+                                  alt={`Product ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg"
+                                />
+                                <button
+                                  onClick={() => removeExistingImage(index)}
+                                  className="absolute top-1 right-1 btn btn-xs btn-circle btn-error opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Dropzone for new images */}
+                      <div>
+                        <label className="label">
+                          <span className="label-text font-semibold">
+                            Add New Images
+                          </span>
+                        </label>
+                        <div
+                          {...getRootProps()}
+                          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                            isDragActive
+                              ? "border-primary bg-primary/10"
+                              : "border-base-300 hover:border-primary"
+                          }`}
+                        >
+                          <input {...getInputProps()} />
+                          <Upload
+                            className="mx-auto mb-4 text-base-content/40"
+                            size={48}
+                          />
+                          {isDragActive ? (
+                            <p className="text-primary">
+                              Drop the images here...
+                            </p>
+                          ) : (
+                            <div>
+                              <p className="text-base-content/60 mb-2">
+                                Drag & drop images here, or click to select
+                              </p>
+                              <p className="text-xs text-base-content/40">
+                                Accepted formats: JPG, PNG, WEBP (Max 5MB each)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Preview of uploaded images */}
+                      {uploadedImages.length > 0 && (
+                        <div>
+                          <label className="label">
+                            <span className="label-text font-semibold">
+                              New Images to Upload ({uploadedImages.length})
+                            </span>
+                          </label>
+                          <div className="grid grid-cols-3 gap-4">
+                            {uploadedImages.map((file, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={file.preview}
+                                  alt={`Upload ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg"
+                                />
+                                <button
+                                  onClick={() => removeUploadedImage(index)}
+                                  className="absolute top-1 right-1 btn btn-xs btn-circle btn-error opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X size={14} />
+                                </button>
+                                <div className="absolute bottom-1 left-1 badge badge-sm badge-info">
+                                  New
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="card-actions justify-end mt-6 pt-4 border-t">
+                      <button
+                        className="btn btn-ghost"
+                        onClick={() => {
+                          setShowEditModal(false);
+                          setEditingProduct(null);
+                          setUploadedImages([]);
+                          setExistingImages([]);
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn btn-primary"
+                        onClick={handleUpdateProduct}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <>
+                            <span className="loading loading-spinner loading-sm"></span>
+                            Updating...
+                          </>
+                        ) : (
+                          <>
+                            <ImageIcon size={18} />
+                            Update Product
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
