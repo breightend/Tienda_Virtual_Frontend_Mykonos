@@ -22,6 +22,10 @@ export default function StorePage() {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [thumbnailPage, setThumbnailPage] = useState(0);
+
+  // Pagination constants
+  const THUMBNAILS_PER_PAGE = 5;
 
   // Variant selection modal state
   const [showVariantModal, setShowVariantModal] = useState(false);
@@ -36,22 +40,43 @@ export default function StorePage() {
   // Carousel navigation functions
   const nextImage = (product, e) => {
     if (e) e.stopPropagation();
-    setCurrentImageIndex((prev) =>
-      prev === product.images.length - 1 ? 0 : prev + 1
-    );
+    setCurrentImageIndex((prev) => {
+      const nextIdx = prev === product.images.length - 1 ? 0 : prev + 1;
+      // Auto-navigate to the correct thumbnail page
+      const newPage = Math.floor(nextIdx / THUMBNAILS_PER_PAGE);
+      setThumbnailPage(newPage);
+      return nextIdx;
+    });
   };
 
   const previousImage = (product, e) => {
     if (e) e.stopPropagation();
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? product.images.length - 1 : prev - 1
-    );
-  };
-
+    setCurrentImageIndex((prev) => {
+      const prevIdx = prev === 0 ? product.images.length - 1 : prev - 1;
+      // Auto-navigate to the correct thumbnail page
+      const newPage = Math.floor(prevIdx / THUMBNAILS_PER_PAGE);
+      setThumbnailPage(newPage);
+      return prevIdx;
+    });
   const handleCardClick = (product) => {
     setCurrentImageIndex(0);
+    setThumbnailPage(0);
     setSelectedCard(product);
+  }}
+
+  // Get paginated thumbnails
+  const getPaginatedThumbnails = (images) => {
+    const startIdx = thumbnailPage * THUMBNAILS_PER_PAGE;
+    const endIdx = startIdx + THUMBNAILS_PER_PAGE;
+    return images.slice(startIdx, endIdx);
   };
+
+  const getTotalPages = (images) => {
+    return Math.ceil(images.length / THUMBNAILS_PER_PAGE);
+  };
+
+  const canGoToPrevPage = () => thumbnailPage > 0;
+  const canGoToNextPage = (images) => thumbnailPage < getTotalPages(images) - 1;
 
   // Helper function to build image URL
   const getImageUrl = (imagePath) => {
@@ -710,28 +735,75 @@ export default function StorePage() {
                         {currentImageIndex + 1} / {selectedCard.images.length}
                       </div>
 
-                      {/* Thumbnails */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-base-100/80 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity max-w-[90%] overflow-x-auto">
-                        {selectedCard.images.map((img, idx) => (
+                      {/* Thumbnails with Pagination */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-base-100/80 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Previous Page Button */}
+                        {selectedCard.images.length > THUMBNAILS_PER_PAGE && (
                           <button
-                            key={idx}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setCurrentImageIndex(idx);
+                              if (canGoToPrevPage()) {
+                                setThumbnailPage(thumbnailPage - 1);
+                              }
                             }}
-                            className={`w-16 h-16 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
-                              idx === currentImageIndex
-                                ? "border-primary scale-110"
-                                : "border-transparent opacity-60 hover:opacity-100"
-                            }`}
+                            disabled={!canGoToPrevPage()}
+                            className="btn btn-circle btn-xs bg-base-200 hover:bg-base-300 border-none disabled:opacity-30"
+                            aria-label="Página anterior de miniaturas"
                           >
-                            <img
-                              src={getImageUrl(img)}
-                              alt={`Thumbnail ${idx + 1}`}
-                              className="w-full h-full object-cover"
-                            />
+                            ‹
                           </button>
-                        ))}
+                        )}
+
+                        {/* Thumbnails */}
+                        <div className="flex gap-2">
+                          {getPaginatedThumbnails(selectedCard.images).map((img, idx) => {
+                            const actualIndex = thumbnailPage * THUMBNAILS_PER_PAGE + idx;
+                            return (
+                              <button
+                                key={actualIndex}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCurrentImageIndex(actualIndex);
+                                }}
+                                className={`w-16 h-16 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
+                                  actualIndex === currentImageIndex
+                                    ? "border-primary scale-110"
+                                    : "border-transparent opacity-60 hover:opacity-100"
+                                }`}
+                              >
+                                <img
+                                  src={getImageUrl(img)}
+                                  alt={`Thumbnail ${actualIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Next Page Button */}
+                        {selectedCard.images.length > THUMBNAILS_PER_PAGE && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (canGoToNextPage(selectedCard.images)) {
+                                setThumbnailPage(thumbnailPage + 1);
+                              }
+                            }}
+                            disabled={!canGoToNextPage(selectedCard.images)}
+                            className="btn btn-circle btn-xs bg-base-200 hover:bg-base-300 border-none disabled:opacity-30"
+                            aria-label="Página siguiente de miniaturas"
+                          >
+                            ›
+                          </button>
+                        )}
+
+                        {/* Page Indicator */}
+                        {selectedCard.images.length > THUMBNAILS_PER_PAGE && (
+                          <div className="ml-2 text-xs opacity-70">
+                            {thumbnailPage + 1}/{getTotalPages(selectedCard.images)}
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
