@@ -158,7 +158,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const getTotalPrice = () => {
-    return total_price;
+    return cart?.subtotal || 0;
   };
 
   const getSubtotal = () => {
@@ -177,7 +177,6 @@ export const CartProvider = ({ children }) => {
     itemCount: getItemCount(),
     totalPrice: getTotalPrice(),
     subtotal: getSubtotal(),
-    total_price: total_price,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

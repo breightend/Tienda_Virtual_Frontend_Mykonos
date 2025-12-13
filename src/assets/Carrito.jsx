@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { useCart } from "./context/CartContext";
 import { useAuth } from "./context/AuthContext";
-import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, BrushCleaning } from "lucide-react";
 import { useState } from "react";
 
 export default function Carrito() {
@@ -9,6 +9,7 @@ export default function Carrito() {
   const { cart, loading, removeItem, updateQuantity, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
   const [processingItem, setProcessingItem] = useState(null);
+  const [limpiarCarrito, setLimpiarCarrito] = useState(false);
 
   if (!isAuthenticated) {
     return (
@@ -49,9 +50,10 @@ export default function Carrito() {
   };
 
   const handleClearCart = async () => {
-    if (confirm("¿Vaciar todo el carrito?")) {
-      await clearCart();
-    }
+    setLimpiarCarrito(true);
+    await clearCart();
+    setLimpiarCarrito(false);
+    document.getElementById("eliminarCarritoModal").close();
   };
 
   const keepShopping = () => {
@@ -251,13 +253,50 @@ export default function Carrito() {
 
               {/* Clear Cart Button */}
               <button
-                onClick={handleClearCart}
+                onClick={() =>
+                  document.getElementById("eliminarCarritoModal").showModal()
+                }
                 className="btn btn-ghost btn-sm text-error"
               >
                 <Trash2 size={16} />
                 Vaciar Carrito
               </button>
             </div>
+
+            <dialog id="eliminarCarritoModal" className="modal">
+              <div className="modal-box">
+                <h3 className="font-bold text-lg">¿Estás seguro?</h3>
+                <p className="py-4">
+                  ¿Deseas vaciar todo el carrito? Esta acción no se puede
+                  deshacer.
+                </p>
+                <div className="modal-action">
+                  <form method="dialog" className="gap-2 flex">
+                    <button className="btn btn-neutral btn-outline">
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-error btn-outline"
+                      onClick={handleClearCart}
+                      disabled={limpiarCarrito}
+                    >
+                      {limpiarCarrito ? (
+                        <>
+                          <span className="loading loading-spinner loading-xs"></span>
+                          Vaciando...
+                        </>
+                      ) : (
+                        <>
+                          <BrushCleaning />
+                          Vaciar carrito
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </dialog>
 
             {/* Order Summary */}
             <div className="lg:col-span-1">

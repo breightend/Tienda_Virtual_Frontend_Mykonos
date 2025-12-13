@@ -147,8 +147,7 @@ export default function Navbar() {
             <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
           </motion.button>
 
-
-            <label className="swap swap-rotate">
+          <label className="swap swap-rotate">
             <input
               type="checkbox"
               className="theme-controller"
@@ -180,8 +179,12 @@ export default function Navbar() {
                 className="card card-compact dropdown-content bg-base-100 z-1 mt-3 w-52 shadow"
               >
                 <div className="card-body">
-                  <span className="text-lg font-bold">{itemCount} Items</span>
-                  <span className="text-info">Subtotal: ${totalPrice}</span>
+                  <span className="text-lg font-bold">
+                    {itemCount} {itemCount === 1 ? "Item" : "Items"}
+                  </span>
+                  <span className="text-info">
+                    Subtotal: ${totalPrice?.toLocaleString("es-AR") || 0}
+                  </span>
                   <div className="card-actions">
                     <button
                       onClick={goToShoppingCart}
@@ -193,7 +196,7 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
-            
+
             {/* User Section */}
             <div className="dropdown dropdown-end">
               {isAuthenticated ? (
@@ -207,8 +210,14 @@ export default function Navbar() {
                     onClick={goToInfoProfile}
                   >
                     {isAdmin ? <Shield size={20} /> : <User size={20} />}
-                    <span className="font-medium">{user?.username || user?.fullname}</span>
-                    {isAdmin && <span className="badge badge-warning badge-sm">ADMIN</span>}
+                    <span className="font-medium">
+                      {user?.username || user?.fullname}
+                    </span>
+                    {isAdmin && (
+                      <span className="badge badge-warning badge-sm">
+                        ADMIN
+                      </span>
+                    )}
                   </div>
                   <ul
                     tabIndex={0}
@@ -238,10 +247,7 @@ export default function Navbar() {
                   </ul>
                 </>
               ) : (
-                <button
-                  onClick={goToLogin}
-                  className="btn btn-primary gap-2"
-                >
+                <button onClick={goToLogin} className="btn btn-primary gap-2">
                   <User size={20} />
                   Iniciar Sesión
                 </button>
@@ -326,7 +332,6 @@ export default function Navbar() {
                 transition={{ delay: 0.15 }}
               ></motion.div>
 
-
               <motion.button
                 className="btn btn-ghost btn-lg justify-start font-light tracking-widest text-base-content text-xl"
                 onClick={goToMyPurchases}
@@ -344,7 +349,6 @@ export default function Navbar() {
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 0.15 }}
               ></motion.div>
-
 
               <motion.button
                 className="btn btn-ghost btn-lg justify-start font-light tracking-widest text-base-content text-xl"
@@ -385,22 +389,32 @@ export default function Navbar() {
               >
                 {isAuthenticated ? (
                   <>
-                    <div 
+                    <div
                       className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer ${
                         isAdmin ? "bg-warning/10" : "bg-info/10"
                       }`}
                       onClick={goToInfoProfile}
                     >
                       <div className={`avatar placeholder`}>
-                        <div className={`w-12 rounded-full ${
-                          isAdmin ? "bg-warning text-warning-content" : "bg-info text-info-content"
-                        }`}>
+                        <div
+                          className={`w-12 rounded-full ${
+                            isAdmin
+                              ? "bg-warning text-warning-content"
+                              : "bg-info text-info-content"
+                          }`}
+                        >
                           {isAdmin ? <Shield size={24} /> : <User size={24} />}
                         </div>
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold">{user?.username || user?.fullname}</p>
-                        <p className={`text-sm ${isAdmin ? "text-warning" : "text-info"}`}>
+                        <p className="font-semibold">
+                          {user?.username || user?.fullname}
+                        </p>
+                        <p
+                          className={`text-sm ${
+                            isAdmin ? "text-warning" : "text-info"
+                          }`}
+                        >
                           {isAdmin ? "Administrador" : "Cliente"}
                         </p>
                       </div>
@@ -413,7 +427,7 @@ export default function Navbar() {
                       <User size={18} />
                       Perfil
                     </button>
-                    
+
                     {isAdmin && (
                       <button
                         className="btn btn-ghost justify-start text-warning"
@@ -423,7 +437,7 @@ export default function Navbar() {
                         Panel Admin
                       </button>
                     )}
-                    
+
                     <button
                       className="btn btn-ghost justify-start text-error"
                       onClick={handleLogout}
