@@ -21,6 +21,7 @@ export default function StorePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Variant selection modal state
   const [showVariantModal, setShowVariantModal] = useState(false);
@@ -31,6 +32,26 @@ export default function StorePage() {
   const [addingToCart, setAddingToCart] = useState(false);
 
   const modalRef = useRef(null);
+
+  // Carousel navigation functions
+  const nextImage = (product, e) => {
+    if (e) e.stopPropagation();
+    setCurrentImageIndex((prev) =>
+      prev === product.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const previousImage = (product, e) => {
+    if (e) e.stopPropagation();
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? product.images.length - 1 : prev - 1
+    );
+  };
+
+  const handleCardClick = (product) => {
+    setCurrentImageIndex(0);
+    setSelectedCard(product);
+  };
 
   // Helper function to build image URL
   const getImageUrl = (imagePath) => {
@@ -359,19 +380,34 @@ export default function StorePage() {
                   return (
                     <motion.div
                       key={product.id}
-                      onClick={() => setSelectedCard(product)}
+                      onClick={() => handleCardClick(product)}
                       className="card bg-base-200 shadow-lg hover:shadow-xl cursor-pointer group"
                       initial={{ opacity: 0, y: 50 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       whileHover={{ y: -8 }}
                     >
-                      <figure className="relative overflow-hidden aspect-[3/4]">
+                      <figure className="relative overflow-hidden aspect-[3/4] group">
+                        {/* Image */}
                         <img
                           src={getImageUrl(product.images[0])}
                           alt={product.nombre_web}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
+
+                        {/* Carousel indicators */}
+                        {product.images && product.images.length > 1 && (
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                            {product.images.map((_, idx) => (
+                              <div
+                                key={idx}
+                                className="w-1.5 h-1.5 rounded-full bg-white/60 transition-all"
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Overlay badges */}
                         {product.stock_disponible === 0 && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <span className="text-white text-xl font-light tracking-wide">
@@ -446,7 +482,7 @@ export default function StorePage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedCard(product);
+                              handleCardClick(product);
                             }}
                             className="btn btn-ghost btn-sm font-light tracking-wide"
                           >
@@ -632,13 +668,73 @@ export default function StorePage() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Large Image */}
-                <div className="w-full h-[60vh] md:h-[70vh] overflow-hidden">
-                  <img
-                    src={getImageUrl(selectedCard.images[0])}
-                    alt={selectedCard.nombre_web}
-                    className="w-full h-full object-contain bg-base-200"
+                {/* Carousel Container */}
+                <div className="relative w-full h-[60vh] md:h-[70vh] overflow-hidden bg-base-200 group">
+                  {/* Main Image */}
+                  <motion.img
+                    key={currentImageIndex}
+                    src={getImageUrl(
+                      selectedCard.images[currentImageIndex] ||
+                        selectedCard.images[0]
+                    )}
+                    alt={`${selectedCard.nombre_web} - Imagen ${
+                      currentImageIndex + 1
+                    }`}
+                    className="w-full h-full object-contain"
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.3 }}
                   />
+
+                  {/* Navigation Arrows - Only show if multiple images */}
+                  {selectedCard.images && selectedCard.images.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => previousImage(selectedCard, e)}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 btn btn-circle btn-sm bg-base-100/80 hover:bg-base-100 border-none opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Imagen anterior"
+                      >
+                        ❮
+                      </button>
+                      <button
+                        onClick={(e) => nextImage(selectedCard, e)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 btn btn-circle btn-sm bg-base-100/80 hover:bg-base-100 border-none opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Siguiente imagen"
+                      >
+                        ❯
+                      </button>
+
+                      {/* Image Counter */}
+                      <div className="absolute top-4 right-4 bg-base-100/80 px-3 py-1 rounded-full text-sm">
+                        {currentImageIndex + 1} / {selectedCard.images.length}
+                      </div>
+
+                      {/* Thumbnails */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-base-100/80 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity max-w-[90%] overflow-x-auto">
+                        {selectedCard.images.map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentImageIndex(idx);
+                            }}
+                            className={`w-16 h-16 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
+                              idx === currentImageIndex
+                                ? "border-primary scale-110"
+                                : "border-transparent opacity-60 hover:opacity-100"
+                            }`}
+                          >
+                            <img
+                              src={getImageUrl(img)}
+                              alt={`Thumbnail ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Scrollable Content */}
