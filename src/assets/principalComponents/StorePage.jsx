@@ -27,12 +27,6 @@ export default function StorePage() {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
 
-  const [seeCategory, setSeeCategory] = useState(true);
-
-  const handleSeeCategory = () => {
-    setSeeCategory(!seeCategory);
-  };
-  
   const modalRef = useRef(null);
 
   // Helper function to build image URL
@@ -197,8 +191,8 @@ export default function StorePage() {
         <div className="w-48 flex-shrink-0">
           <div className="md:sticky top-24">
             <CategoryFilter
+              onSelectCategory={setSelectedCategory}
               selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
             />
             
             {selectedCategory && (

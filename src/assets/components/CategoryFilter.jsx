@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import { fetchGroupsHierarchy } from "../services/groupService";
 import PropTypes from "prop-types";
+import { div } from "motion/react-client";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 /**
  * CategoryFilter Component
@@ -12,6 +14,12 @@ export default function CategoryFilter({ onSelectCategory, selectedCategory }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState(new Set());
+  const [seeCategory, setSeeCategory] = useState(true);
+
+  const handleSeeCategory = () => {
+    setSeeCategory(!seeCategory);
+  };
+
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -118,16 +126,20 @@ export default function CategoryFilter({ onSelectCategory, selectedCategory }) {
   };
 
   return (
-    <div className="w-64 bg-base-200 rounded-lg p-4 shadow-lg h-fit sticky top-4">
+    <div className="md:w-64 w-72 bg-base-200 rounded-lg p-4 shadow-lg h-fit sticky top-4">
       {/* Header */}
-      <div className="mb-4">
+      <div className="mb-4 flex justify-between items-center">
         <h2 className="text-xl font-light tracking-widest text-base-content mb-2">
           CATEGORÍAS
         </h2>
-        <div className="w-12 h-px bg-primary"></div>
+        <button onClick={handleSeeCategory} className="btn btn-xs btn-icon tooltip" data-tip="Ver Categorias">{seeCategory ? (<ChevronUp className="w-4 h-4" />) : (<ChevronDown className="w-4 h-4" />)}</button>
       </div>
+        <div className="w-12 h-px bg-primary mb-2"></div>
 
       {/* All Products Button */}
+      {seeCategory && (
+        <div>
+
       <motion.button
         onClick={() => onSelectCategory(null)}
         className={`
@@ -144,25 +156,27 @@ export default function CategoryFilter({ onSelectCategory, selectedCategory }) {
         TODOS LOS PRODUCTOS
       </motion.button>
 
-      {/* Loading State */}
+      
       {loading && (
         <div className="flex justify-center items-center py-8">
           <span className="loading loading-spinner loading-md text-primary"></span>
         </div>
       )}
 
-      {/* Error State */}
+      
       {error && (
         <div className="alert alert-error alert-sm">
           <span className="text-xs">{error}</span>
         </div>
       )}
 
-      {/* Categories Tree */}
+    
       {!loading && !error && (
         <div className="space-y-1">
           {categories.map(category => renderCategory(category))}
         </div>
+      )}
+      </div>
       )}
     </div>
   );
