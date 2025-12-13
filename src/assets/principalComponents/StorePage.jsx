@@ -96,9 +96,16 @@ export default function StorePage() {
       return;
     }
 
-    if (!product.precio_web && !product.sale_price) {
-      toast.error("Este producto no tiene precio configurado");
-      console.error("Product without price:", product);
+    // Validate product has a valid price (not null, not undefined, and greater than 0)
+    const price = product.precio_web || product.sale_price;
+    if (!price || price <= 0) {
+      toast.error("Este producto no tiene un precio válido configurado");
+      console.error("Product without valid price:", {
+        id: product.id,
+        name: product.nombre_web,
+        precio_web: product.precio_web,
+        sale_price: product.sale_price,
+      });
       return;
     }
 
@@ -107,6 +114,13 @@ export default function StorePage() {
       console.error("Product without variants:", product);
       return;
     }
+
+    console.log("Adding to cart - Product validation passed:", {
+      id: product.id,
+      name: product.nombre_web,
+      price: price,
+      variants: product.variantes.length,
+    });
 
     if (product.variantes.length === 1) {
       addToCartDirectly(product.id, 1, product.variantes[0].variant_id);
@@ -127,6 +141,7 @@ export default function StorePage() {
 
       if (result.success) {
         toast.success("¡Producto agregado al carrito!");
+        console.log("Added to cart:", { productId, qty, variantId });
       } else {
         toast.error(result.error || "Error al agregar al carrito");
       }
@@ -139,6 +154,20 @@ export default function StorePage() {
   };
   const handleConfirmAddToCart = async () => {
     if (!selectedProduct) return;
+
+    // Validate product has a valid price
+    const price = selectedProduct.precio_web || selectedProduct.sale_price;
+    if (!price || price <= 0) {
+      toast.error("Este producto no tiene un precio válido configurado");
+      console.error("Product without valid price in modal:", {
+        id: selectedProduct.id,
+        name: selectedProduct.nombre_web,
+        precio_web: selectedProduct.precio_web,
+        sale_price: selectedProduct.sale_price,
+      });
+      closeVariantModal();
+      return;
+    }
 
     // Validate variant selection
     const uniqueColors = getUniqueColors(selectedProduct.variantes);

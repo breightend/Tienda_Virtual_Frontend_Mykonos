@@ -15,7 +15,9 @@ export default function Carrito() {
       <div className="min-h-screen bg-base-200 flex items-center justify-center px-4">
         <div className="card bg-base-100 shadow-xl max-w-md w-full">
           <div className="card-body text-center">
-            <h2 className="card-title justify-center text-2xl">Inicia Sesión</h2>
+            <h2 className="card-title justify-center text-2xl">
+              Inicia Sesión
+            </h2>
             <p className="text-base-content/60">
               Debes iniciar sesión para ver tu carrito
             </p>
@@ -70,6 +72,7 @@ export default function Carrito() {
   }
 
   const isEmpty = !cart?.items || cart.items.length === 0;
+  const hasCartError = cart?.hasError;
 
   return (
     <div className="min-h-screen bg-base-200 py-8 px-4">
@@ -80,12 +83,44 @@ export default function Carrito() {
           <div className="w-16 h-px bg-primary"></div>
         </div>
 
+        {/* Error Alert */}
+        {hasCartError && (
+          <div className="alert alert-error mb-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="stroke-current shrink-0 h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 className="font-bold">Error en el carrito</h3>
+              <div className="text-sm">
+                Tu carrito contiene productos con precios no configurados. Por
+                favor elimina los productos problemáticos o contacta al
+                administrador.
+              </div>
+            </div>
+          </div>
+        )}
+
         {isEmpty ? (
           /* Empty Cart */
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body text-center py-16">
-              <ShoppingBag size={64} className="mx-auto text-base-content/20 mb-4" />
-              <h2 className="text-2xl font-light mb-2">Tu carrito está vacío</h2>
+              <ShoppingBag
+                size={64}
+                className="mx-auto text-base-content/20 mb-4"
+              />
+              <h2 className="text-2xl font-light mb-2">
+                Tu carrito está vacío
+              </h2>
               <p className="text-base-content/60 mb-6">
                 Agrega productos para comenzar tu compra
               </p>
@@ -111,7 +146,7 @@ export default function Carrito() {
                         {item.product_image ? (
                           <img
                             src={
-                              item.product_image.startsWith('http')
+                              item.product_image.startsWith("http")
                                 ? item.product_image
                                 : `http://localhost:8080${item.product_image}`
                             }
@@ -130,9 +165,20 @@ export default function Carrito() {
                         <h3 className="font-semibold text-lg">
                           {item.product_name}
                         </h3>
-                        <p className="text-primary font-bold mt-1">
-                          ${item.unit_price?.toLocaleString("es-AR")}
-                        </p>
+                        {item.unit_price ? (
+                          <p className="text-primary font-bold mt-1">
+                            ${item.unit_price?.toLocaleString("es-AR")}
+                          </p>
+                        ) : (
+                          <div className="mt-1">
+                            <p className="text-error font-bold">
+                              Precio no disponible
+                            </p>
+                            <p className="text-xs text-error/70">
+                              Este producto tiene un problema de configuración
+                            </p>
+                          </div>
+                        )}
                         {item.stock_available !== undefined && (
                           <p className="text-sm text-base-content/60 mt-1">
                             Stock disponible: {item.stock_available}
@@ -175,9 +221,13 @@ export default function Carrito() {
                           </button>
                         </div>
 
-                        <p className="text-lg font-bold">
-                          ${item.subtotal?.toLocaleString("es-AR")}
-                        </p>
+                        {item.subtotal ? (
+                          <p className="text-lg font-bold">
+                            ${item.subtotal?.toLocaleString("es-AR")}
+                          </p>
+                        ) : (
+                          <p className="text-error font-bold">--</p>
+                        )}
 
                         <button
                           onClick={() => handleRemoveItem(item.cart_item_id)}
@@ -187,6 +237,12 @@ export default function Carrito() {
                           <Trash2 size={14} />
                           Eliminar
                         </button>
+
+                        {!item.unit_price && (
+                          <div className="badge badge-error badge-sm">
+                            Eliminar este producto
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -214,7 +270,9 @@ export default function Carrito() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-base-content/60">Productos ({cart.total_items})</span>
+                      <span className="text-base-content/60">
+                        Productos ({cart.total_items})
+                      </span>
                       <span>${cart.subtotal?.toLocaleString("es-AR")}</span>
                     </div>
                     <div className="flex justify-between text-sm">
