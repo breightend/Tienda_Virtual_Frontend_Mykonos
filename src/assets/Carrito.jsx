@@ -61,8 +61,7 @@ export default function Carrito() {
   };
 
   const goToCheckout = () => {
-    alert("Funcionalidad de checkout en desarrollo");
-    // setLocation("/checkout");
+    setLocation("/checkout");
   };
 
   if (loading && !cart) {
@@ -334,7 +333,7 @@ export default function Carrito() {
                       onClick={goToCheckout}
                       className="btn btn-primary btn-block"
                     >
-                      Proceder al Pago
+                      Finalizar Compra
                     </button>
                     <button
                       onClick={keepShopping}
