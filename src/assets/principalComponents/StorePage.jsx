@@ -58,11 +58,13 @@ export default function StorePage() {
       setThumbnailPage(newPage);
       return prevIdx;
     });
+  };
+
   const handleCardClick = (product) => {
     setCurrentImageIndex(0);
     setThumbnailPage(0);
     setSelectedCard(product);
-  }}
+  };
 
   // Get paginated thumbnails
   const getPaginatedThumbnails = (images) => {
@@ -259,7 +261,6 @@ export default function StorePage() {
       variantId: variantId,
     });
 
-    // Add to cart
     try {
       setAddingToCart(true);
       const result = await addToCart(selectedProduct.id, quantity, variantId);
@@ -756,29 +757,32 @@ export default function StorePage() {
 
                         {/* Thumbnails */}
                         <div className="flex gap-2">
-                          {getPaginatedThumbnails(selectedCard.images).map((img, idx) => {
-                            const actualIndex = thumbnailPage * THUMBNAILS_PER_PAGE + idx;
-                            return (
-                              <button
-                                key={actualIndex}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setCurrentImageIndex(actualIndex);
-                                }}
-                                className={`w-16 h-16 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
-                                  actualIndex === currentImageIndex
-                                    ? "border-primary scale-110"
-                                    : "border-transparent opacity-60 hover:opacity-100"
-                                }`}
-                              >
-                                <img
-                                  src={getImageUrl(img)}
-                                  alt={`Thumbnail ${actualIndex + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </button>
-                            );
-                          })}
+                          {getPaginatedThumbnails(selectedCard.images).map(
+                            (img, idx) => {
+                              const actualIndex =
+                                thumbnailPage * THUMBNAILS_PER_PAGE + idx;
+                              return (
+                                <button
+                                  key={actualIndex}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCurrentImageIndex(actualIndex);
+                                  }}
+                                  className={`w-16 h-16 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
+                                    actualIndex === currentImageIndex
+                                      ? "border-primary scale-110"
+                                      : "border-transparent opacity-60 hover:opacity-100"
+                                  }`}
+                                >
+                                  <img
+                                    src={getImageUrl(img)}
+                                    alt={`Thumbnail ${actualIndex + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </button>
+                              );
+                            }
+                          )}
                         </div>
 
                         {/* Next Page Button */}
@@ -801,7 +805,8 @@ export default function StorePage() {
                         {/* Page Indicator */}
                         {selectedCard.images.length > THUMBNAILS_PER_PAGE && (
                           <div className="ml-2 text-xs opacity-70">
-                            {thumbnailPage + 1}/{getTotalPages(selectedCard.images)}
+                            {thumbnailPage + 1}/
+                            {getTotalPages(selectedCard.images)}
                           </div>
                         )}
                       </div>
