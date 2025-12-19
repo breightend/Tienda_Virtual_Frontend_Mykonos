@@ -4,6 +4,7 @@ import {
   fetchProducts,
   fetchProductsByGroupName,
 } from "../services/productService";
+import { getWebProductsVariantsByBranch } from "../services/branchService";
 import CategoryFilter from "../components/CategoryFilter";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -94,34 +95,71 @@ export default function StorePage() {
         setLoading(true);
         let data;
 
+        // First, load products based on category filter
         if (selectedCategory) {
           data = await fetchProductsByGroupName(selectedCategory.group_name);
         } else {
           data = await fetchProducts();
         }
 
-        // Filter by branch if selected
+        // Then, if branch is selected, filter/enrich with branch-specific stock
         if (selectedBranch) {
-          data = data
-            .map((product) => {
-              // Filter variants to only show those available in the selected branch
-              const branchVariants =
-                product.variantes?.filter((variant) => {
-                  // This assumes variants have branch information
-                  // You may need to adjust based on your actual data structure
-                  return variant.stock > 0; // or check specific branch stock
-                }) || [];
+          // For each product, get variants available in the selected branch
+          const productsWithBranchStock = await Promise.all(
+            data.map(async (product) => {
+              try {
+                // Get branch-specific variants
+                const branchData = await getWebProductsVariantsByBranch(
+                  product.id,
+                  selectedBranch.id
+                );
 
-              return {
-                ...product,
-                variantes: branchVariants,
-                stock_disponible: branchVariants.reduce(
-                  (sum, v) => sum + (v.stock || 0),
-                  0
-                ),
-              };
+                // branchData is an array with single branch object
+                if (
+                  branchData &&
+                  branchData.length > 0 &&
+                  branchData[0].variants
+                ) {
+                  const branchVariants = branchData[0].variants;
+
+                  // Filter to only variants with quantity > 0 in this branch
+                  const availableVariants = branchVariants.filter(
+                    (v) => v.quantity > 0
+                  );
+
+                  if (availableVariants.length === 0) {
+                    return null; // No stock in this branch
+                  }
+
+                  // Update product with branch-specific variants
+                  return {
+                    ...product,
+                    variantes: availableVariants.map((v) => ({
+                      variant_id: v.variant_id,
+                      talle: v.size,
+                      color: v.color,
+                      color_hex: v.color_hex,
+                      stock: v.quantity, // Stock in this specific branch
+                    })),
+                    stock_disponible: availableVariants.reduce(
+                      (sum, v) => sum + v.quantity,
+                      0
+                    ),
+                  };
+                }
+                return null; // No variants found
+              } catch (err) {
+                console.error(
+                  `Error fetching variants for product ${product.id}:`,
+                  err
+                );
+                return null;
+              }
             })
-            .filter((product) => product.stock_disponible > 0); // Only show products with stock
+          );
+
+          // Filter out products with no stock in selected branch
+          data = productsWithBranchStock.filter((p) => p !== null);
         }
 
         setProducts(data);
