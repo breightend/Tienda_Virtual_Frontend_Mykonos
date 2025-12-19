@@ -24,10 +24,8 @@ export default function StorePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [thumbnailPage, setThumbnailPage] = useState(0);
 
-  // Pagination constants
   const THUMBNAILS_PER_PAGE = 5;
 
-  // Variant selection modal state
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);

@@ -326,6 +326,52 @@ const getProductImages = async (productId) => {
   }
 };
 
+/**
+ * Get all variants for a product with their stock configuration
+ * @param {number} productId - Product ID
+ * @returns {Promise<Array>} Array of variants with stock configuration
+ */
+const getProductVariants = async (productId) => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const response = await axios.get(`${API_URL}/${productId}/variantes`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching variants for product ${productId}:`, error);
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Update product with variants and stock configuration
+ * @param {number} productId - Product ID
+ * @param {Object} data - Product data with variants
+ * @param {string} data.nombre - Product name
+ * @param {string} data.descripcion - Product description
+ * @param {number} data.precio_web - Web price
+ * @param {boolean} data.en_tienda_online - Whether product is online
+ * @param {Array} data.variantes - Array of variants with stock configuration
+ * @returns {Promise<Object>} Updated product
+ */
+const updateProductWithVariants = async (productId, data) => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const response = await axios.put(`${API_URL}/${productId}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating product ${productId} with variants:`, error);
+    throw error.response?.data || error;
+  }
+};
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -349,4 +395,6 @@ export {
   uploadProductImage,
   deleteProductImage,
   getProductImages,
+  getProductVariants,
+  updateProductWithVariants,
 };

@@ -9,10 +9,16 @@ import {
   uploadProductImage,
   deleteProductImage,
   getProductImages,
+  getProductVariants,
+  updateProductWithVariants,
 } from "../services/productService";
+import {
+  getAllBranches,
+  getProductDetailsByVariantByBranch,
+} from "../services/branchService";
 import { motion, AnimatePresence } from "motion/react";
 import { useDropzone } from "react-dropzone";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function AdminProductList() {
@@ -28,8 +34,10 @@ export default function AdminProductList() {
   const [error, setError] = useState(null);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [variantsByBranch, setVariantsByBranch] = useState([]);
+  const [enTiendaOnline, setEnTiendaOnline] = useState(true);
 
-  // Form state for adding/editing product
   const [formData, setFormData] = useState({
     nombre_web: "",
     descripcion_web: "",
@@ -37,10 +45,20 @@ export default function AdminProductList() {
     slug: "",
   });
 
-  // Load online products on mount
   useEffect(() => {
     loadOnlineProducts();
+    loadBranches();
   }, []);
+
+  const loadBranches = async () => {
+    try {
+      const branchesData = await getAllBranches();
+      setBranches(branchesData);
+    } catch (error) {
+      console.error("Error loading branches:", error);
+      toast.error("Error al cargar sucursales");
+    }
+  };
 
   const loadOnlineProducts = async () => {
     try {
@@ -167,7 +185,7 @@ export default function AdminProductList() {
   };
 
   // Handle double click to edit product
-  const handleProductDoubleClick = (product) => {
+  const handleProductDoubleClick = async (product) => {
     setEditingProduct(product);
     setFormData({
       nombre_web: product.nombre_web || "",
@@ -175,8 +193,29 @@ export default function AdminProductList() {
       precio_web: product.precio_web || "",
       slug: product.slug || "",
     });
+    setEnTiendaOnline(product.en_tienda_online !== false);
     setExistingImages(product.images || []);
     setUploadedImages([]);
+
+    // Load variants by branch
+    try {
+      const variantsData = await getProductDetailsByVariantByBranch(product.id);
+      // Inicializar cantidad_web para cada variante si no existe
+      const variantsWithWeb = (variantsData || []).map((branch) => ({
+        ...branch,
+        variants: (branch.variants || []).map((variant) => ({
+          ...variant,
+          cantidad_web: variant.cantidad_web || 0, // Stock asignado a la web
+          mostrar_en_web: variant.mostrar_en_web !== false,
+        })),
+      }));
+      setVariantsByBranch(variantsWithWeb);
+    } catch (error) {
+      console.error("Error loading variants:", error);
+      toast.error("Error al cargar variantes");
+      setVariantsByBranch([]);
+    }
+
     setShowEditModal(true);
   };
 
@@ -226,7 +265,9 @@ export default function AdminProductList() {
       );
       const uploadedImageResults = await Promise.all(uploadPromises);
 
-      toast.success(`${uploadedImageResults.length} imágenes subidas`);
+      if (uploadedImageResults.length > 0) {
+        toast.success(`${uploadedImageResults.length} imágenes subidas`);
+      }
 
       // Step 2: Delete removed images
       const currentImageIds = existingImages.map((img) => img.id);
@@ -245,15 +286,42 @@ export default function AdminProductList() {
         toast.success(`${imagesToDelete.length} imágenes eliminadas`);
       }
 
-      // Step 3: Update product data
+      // Step 3: Update product data with variants
+      // Preparar variantes: agrupar por barcode y construir configuracion_stock
+      const variantesMap = new Map();
+
+      variantsByBranch.forEach((branch) => {
+        branch.variants.forEach((variant) => {
+          if (!variantesMap.has(variant.barcode)) {
+            variantesMap.set(variant.barcode, {
+              barcode: variant.barcode,
+              size: variant.size,
+              color: variant.color,
+              color_hex: variant.color_hex,
+              mostrar_en_web: variant.mostrar_en_web !== false,
+              configuracion_stock: [],
+            });
+          }
+
+          const variantData = variantesMap.get(variant.barcode);
+          if (variant.cantidad_web > 0) {
+            variantData.configuracion_stock.push({
+              sucursal_id: branch.branch_id,
+              cantidad_asignada: variant.cantidad_web,
+            });
+          }
+        });
+      });
+
       const productData = {
-        nombre_web: formData.nombre_web,
-        descripcion_web: formData.descripcion_web || "",
+        nombre: formData.nombre_web,
+        descripcion: formData.descripcion_web || "",
         precio_web: parseFloat(formData.precio_web),
-        slug: formData.slug || "",
+        en_tienda_online: enTiendaOnline,
+        variantes: Array.from(variantesMap.values()),
       };
 
-      await updateProduct(editingProduct.id, productData);
+      await updateProductWithVariants(editingProduct.id, productData);
 
       toast.success("Producto actualizado correctamente!");
       await loadOnlineProducts();
@@ -261,12 +329,34 @@ export default function AdminProductList() {
       setEditingProduct(null);
       setUploadedImages([]);
       setExistingImages([]);
+      setVariantsByBranch([]);
     } catch (error) {
       console.error("Error updating product:", error);
       toast.error(error.detail || "Error al actualizar producto");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Update web stock for a variant in a branch
+  const handleUpdateWebStock = (branchIndex, variantIndex, value) => {
+    const updatedVariants = [...variantsByBranch];
+    const variant = updatedVariants[branchIndex].variants[variantIndex];
+    const maxStock = variant.quantity; // Stock físico disponible
+
+    // Validar que no exceda el stock disponible
+    const newValue = Math.max(0, Math.min(parseInt(value) || 0, maxStock));
+    variant.cantidad_web = newValue;
+
+    setVariantsByBranch(updatedVariants);
+  };
+
+  // Toggle variant visibility
+  const handleToggleVariantVisibility = (branchIndex, variantIndex) => {
+    const updatedVariants = [...variantsByBranch];
+    updatedVariants[branchIndex].variants[variantIndex].mostrar_en_web =
+      !updatedVariants[branchIndex].variants[variantIndex].mostrar_en_web;
+    setVariantsByBranch(updatedVariants);
   };
 
   return (
@@ -717,6 +807,164 @@ export default function AdminProductList() {
                           }
                           placeholder="product-name-slug"
                         />
+                      </div>
+
+                      {/* Show in Online Store Toggle */}
+                      <div className="form-control">
+                        <label className="label cursor-pointer justify-start gap-4">
+                          <input
+                            type="checkbox"
+                            className="toggle toggle-primary"
+                            checked={enTiendaOnline}
+                            onChange={(e) =>
+                              setEnTiendaOnline(e.target.checked)
+                            }
+                          />
+                          <span className="label-text font-semibold">
+                            Mostrar en Tienda Online
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Variants Section */}
+                      <div className="divider">
+                        Variantes y Stock por Sucursal
+                      </div>
+
+                      {variantsByBranch.length === 0 ? (
+                        <div className="alert alert-info">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            className="stroke-current shrink-0 w-6 h-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span>
+                            No se encontraron variantes para este producto
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {variantsByBranch.map((branch, bIndex) => (
+                            <div
+                              key={branch.branch_id}
+                              className="card bg-base-200 shadow-md"
+                            >
+                              <div className="card-body p-4">
+                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                                  <span className="badge badge-primary">
+                                    {branch.branch_name}
+                                  </span>
+                                </h3>
+
+                                {/* Variants Table */}
+                                <div className="overflow-x-auto">
+                                  <table className="table table-sm table-zebra">
+                                    <thead>
+                                      <tr>
+                                        <th>Color</th>
+                                        <th>Talle</th>
+                                        <th>Stock Físico</th>
+                                        <th>Stock Web</th>
+                                        <th>Mostrar</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {branch.variants.map(
+                                        (variant, vIndex) => (
+                                          <tr key={vIndex}>
+                                            <td>
+                                              <div className="flex items-center gap-2">
+                                                <div
+                                                  className="w-4 h-4 rounded-full border"
+                                                  style={{
+                                                    backgroundColor:
+                                                      variant.color_hex,
+                                                  }}
+                                                ></div>
+                                                <span className="text-sm">
+                                                  {variant.color}
+                                                </span>
+                                              </div>
+                                            </td>
+                                            <td className="font-semibold">
+                                              {variant.size}
+                                            </td>
+                                            <td>
+                                              <span className="badge badge-info">
+                                                {variant.quantity} unidades
+                                              </span>
+                                            </td>
+                                            <td>
+                                              <input
+                                                type="number"
+                                                min="0"
+                                                max={variant.quantity}
+                                                className="input input-bordered input-sm w-20"
+                                                value={variant.cantidad_web}
+                                                onChange={(e) =>
+                                                  handleUpdateWebStock(
+                                                    bIndex,
+                                                    vIndex,
+                                                    e.target.value
+                                                  )
+                                                }
+                                              />
+                                            </td>
+                                            <td>
+                                              <input
+                                                type="checkbox"
+                                                className="checkbox checkbox-primary checkbox-sm"
+                                                checked={
+                                                  variant.mostrar_en_web !==
+                                                  false
+                                                }
+                                                onChange={() =>
+                                                  handleToggleVariantVisibility(
+                                                    bIndex,
+                                                    vIndex
+                                                  )
+                                                }
+                                              />
+                                            </td>
+                                          </tr>
+                                        )
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="alert alert-warning mt-4">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="stroke-current shrink-0 h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                        <span className="text-sm">
+                          <strong>Stock Web:</strong> Cantidad de unidades que
+                          se mostrarán disponibles en la tienda online. No puede
+                          exceder el stock físico disponible en cada sucursal.
+                        </span>
                       </div>
 
                       {/* Images Section */}
