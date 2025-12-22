@@ -21,6 +21,19 @@ const fetchProducts = async () => {
   }
 };
 
+const fetchAdminInfoProducts = async () => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+    const response = await axios.get(`${API_URL}/info-matrix`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching admin info products:", error);
+    throw error.response?.data || error;
+  }
+}
 /**
  * Fetch product by ID
  * @param {number} productId - Product ID
@@ -357,6 +370,7 @@ const getProductVariants = async (productId) => {
  * @param {Array} data.variantes - Array of variants with stock configuration
  * @returns {Promise<Object>} Updated product
  */
+
 const updateProductWithVariants = async (productId, data) => {
   try {
     const token = getAuthToken();
@@ -372,20 +386,34 @@ const updateProductWithVariants = async (productId, data) => {
   }
 };
 
-// ============================================================================
-// EXPORTS
-// ============================================================================
+const searchProductsByBarcodeAdmin = async (barcode) => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+    const response = await axios.get(
+      `${API_URL}/search-by-barcode/${encodeURIComponent(barcode)}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error searching products by barcode ${barcode}:`, error);
+    throw error.response?.data || error;
+  }
+};
 
 export {
-  // Public endpoints
+  // Public
   fetchProducts,
   fetchProductById,
   fetchProductsByCategory,
   fetchProductsByGroupName,
   fetchOnlineStoreProducts,
   fetchProductBySlug,
+  fetchAdminInfoProducts,
 
-  // Admin endpoints
+  // Admin
   fetchAllProducts,
   createProduct,
   updateProduct,
@@ -397,4 +425,5 @@ export {
   getProductImages,
   getProductVariants,
   updateProductWithVariants,
+  searchProductsByBarcodeAdmin,
 };

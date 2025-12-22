@@ -1,30 +1,21 @@
 import AdminLayout from "../AdminComponents/AdminLayout";
-import { useState, useEffect, useCallback } from "react";
+import EditProduct from "../AdminComponents/EditProduct";
+import { useState, useEffect } from "react";
 import {
-  fetchProducts,
+  fetchAdminInfoProducts,
   fetchAllProducts,
   toggleProductOnline,
-  deleteProduct,
-  updateProduct,
-  uploadProductImage,
-  deleteProductImage,
-  getProductImages,
-  getProductVariants,
-  updateProductWithVariants,
+  searchProductsByBarcodeAdmin,
 } from "../services/productService";
-import {
-  getAllBranches,
-  getProductDetailsByVariantByBranch,
-} from "../services/branchService";
 import { motion, AnimatePresence } from "motion/react";
-import { useDropzone } from "react-dropzone";
-import { Upload, X, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function AdminProductList() {
   const [onlineProducts, setOnlineProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [searchBarcode, setSearchBarcode] = useState("");
+  const [searchOnlineBarcode, setSearchOnlineBarcode] = useState("");
+  const [filteredOnlineProducts, setFilteredOnlineProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -32,11 +23,6 @@ export default function AdminProductList() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [error, setError] = useState(null);
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [variantsByBranch, setVariantsByBranch] = useState([]);
-  const [enTiendaOnline, setEnTiendaOnline] = useState(true);
 
   const [formData, setFormData] = useState({
     nombre_web: "",
@@ -47,24 +33,14 @@ export default function AdminProductList() {
 
   useEffect(() => {
     loadOnlineProducts();
-    loadBranches();
   }, []);
-
-  const loadBranches = async () => {
-    try {
-      const branchesData = await getAllBranches();
-      setBranches(branchesData);
-    } catch (error) {
-      console.error("Error loading branches:", error);
-      toast.error("Error al cargar sucursales");
-    }
-  };
 
   const loadOnlineProducts = async () => {
     try {
       setLoading(true);
-      const products = await fetchProducts();
+      const products = await fetchAdminInfoProducts();
       setOnlineProducts(products);
+      setFilteredOnlineProducts(products);
       setError(null);
     } catch (error) {
       console.error("Error loading products:", error);
@@ -74,7 +50,7 @@ export default function AdminProductList() {
     }
   };
 
-  // Search product by barcode
+  console.log("Online Products:", onlineProducts);
   const handleBarcodeSearch = async () => {
     if (!searchBarcode.trim()) {
       setError("Please enter a barcode");
@@ -99,6 +75,47 @@ export default function AdminProductList() {
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  // Filter online products by barcode
+  const handleOnlineProductSearch = async () => {
+    if (!searchOnlineBarcode.trim()) {
+      setFilteredOnlineProducts(onlineProducts);
+      setError(null);
+      return;
+    }
+
+    try {
+      setSearchLoading(true);
+      setError(null);
+      const results = await searchProductsByBarcodeAdmin(searchOnlineBarcode);
+
+      // Filtrar solo los productos que están en línea
+      const onlineResults = results.filter((p) => p.en_tienda_online);
+
+      if (onlineResults.length === 0) {
+        toast.error(
+          "No se encontraron productos en línea con ese código de barras"
+        );
+        setFilteredOnlineProducts([]);
+      } else {
+        setFilteredOnlineProducts(onlineResults);
+        toast.success(`${onlineResults.length} producto(s) encontrado(s)`);
+      }
+    } catch (error) {
+      console.error("Error searching online products:", error);
+      toast.error("Error al buscar productos");
+      setFilteredOnlineProducts([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Clear online product search
+  const handleClearOnlineSearch = () => {
+    setSearchOnlineBarcode("");
+    setFilteredOnlineProducts(onlineProducts);
+    setError(null);
   };
 
   const handleSelectProduct = (product) => {
@@ -146,8 +163,8 @@ export default function AdminProductList() {
       });
       setError(null);
     } catch (error) {
-      console.error("Error adding product to online store:", error);
-      setError(error.detail || "Error adding product to online store");
+      console.error("Error al agregar productos a la tienda online:", error);
+      setError(error.detail || "Error al agregar producto a la tienda online");
     } finally {
       setLoading(false);
     }
@@ -156,7 +173,7 @@ export default function AdminProductList() {
   const handleRemoveFromOnlineStore = async (productId) => {
     if (
       !confirm(
-        "Are you sure you want to remove this product from the online store?"
+        "¿Está seguro de que desea eliminar este producto de la tienda en línea?"
       )
     ) {
       return;
@@ -180,222 +197,28 @@ export default function AdminProductList() {
   };
 
   // Handle double click to edit product
-  const handleProductDoubleClick = async (product) => {
-    console.log("📝 Producto seleccionado para editar:", product);
+  const handleProductDoubleClick = (product) => {
     setEditingProduct(product);
-    setFormData({
-      nombre_web: product.nombre_web || "",
-      descripcion_web: product.descripcion_web || "",
-      precio_web: product.precio_web || "",
-      slug: product.slug || "",
-    });
-    setEnTiendaOnline(product.en_tienda_online !== false);
-    setExistingImages(product.images || []);
-    setUploadedImages([]);
-
-    try {
-      console.log(
-        `🔄 Llamando a getProductDetailsByVariantByBranch(${product.id})...`
-      );
-      const variantsData = await getProductDetailsByVariantByBranch(product.id);
-      console.log(
-        "🔍 Datos RAW del backend:",
-        JSON.stringify(variantsData, null, 2)
-      );
-      console.log(
-        "📊 Cantidad de sucursales recibidas:",
-        variantsData?.length || 0
-      );
-
-      const variantsWithWeb = (variantsData || []).map((branch) => ({
-        ...branch,
-        variants: (branch.variants || []).map((variant) => {
-          console.log("🔍 Variante individual:", variant);
-          return {
-            ...variant,
-            id: variant.variant_id || variant.id, // IMPORTANTE: variant_id primero
-            cantidad_web: variant.cantidad_web || 0,
-            mostrar_en_web: variant.mostrar_en_web !== false,
-          };
-        }),
-      }));
-
-      console.log("✅ Variantes procesadas:", variantsWithWeb);
-      setVariantsByBranch(variantsWithWeb);
-    } catch (error) {
-      console.error("Error loading variants:", error);
-      toast.error("Error al cargar variantes");
-      setVariantsByBranch([]);
-    }
-
     setShowEditModal(true);
   };
 
-  // Dropzone configuration
-  const onDrop = useCallback((acceptedFiles) => {
-    const newImages = acceptedFiles.map((file) =>
-      Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      })
-    );
-    setUploadedImages((prev) => [...prev, ...newImages]);
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
-    },
-    maxSize: 5242880, // 5MB
-  });
-
-  // Remove uploaded image
-  const removeUploadedImage = (index) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingProduct(null);
   };
 
-  // Remove existing image
-  const removeExistingImage = (index) => {
-    setExistingImages((prev) => prev.filter((_, i) => i !== index));
-  };
-  console.log("Informacion a subir: ", { formData, enTiendaOnline });
-
-  // Update product
-  const handleUpdateProduct = async () => {
-    if (!editingProduct) return;
-
-    if (!formData.nombre_web || !formData.precio_web) {
-      toast.error("El nombre y precio son requeridos");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      // Step 1: Upload new images
-      const uploadPromises = uploadedImages.map((file) =>
-        uploadProductImage(editingProduct.id, file)
-      );
-      const uploadedImageResults = await Promise.all(uploadPromises);
-
-      if (uploadedImageResults.length > 0) {
-        toast.success(`${uploadedImageResults.length} imágenes subidas`);
-      }
-
-      // Step 2: Delete removed images
-      const currentImageIds = existingImages.map((img) => img.id);
-      const originalImageIds =
-        editingProduct.images?.map((img) => img.id) || [];
-      const imagesToDelete = originalImageIds.filter(
-        (id) => !currentImageIds.includes(id)
-      );
-
-      const deletePromises = imagesToDelete.map((imageId) =>
-        deleteProductImage(editingProduct.id, imageId)
-      );
-      await Promise.all(deletePromises);
-
-      if (imagesToDelete.length > 0) {
-        toast.success(`${imagesToDelete.length} imágenes eliminadas`);
-      }
-
-      // Step 3: Update product data with variants
-      // Preparar variantes: agrupar por ID y construir configuracion_stock
-      console.log("🚀 Preparando variantes para enviar al backend...");
-      console.log("📦 variantsByBranch:", variantsByBranch);
-
-      const variantesMap = new Map();
-
-      variantsByBranch.forEach((branch) => {
-        branch.variants.forEach((variant) => {
-          console.log("🔍 Procesando variante:", { id: variant.id, variant });
-          if (!variant.id) {
-            console.warn("⚠️ Variante sin ID, saltando:", variant);
-            return; // Skip si no tiene ID
-          }
-
-          if (!variantesMap.has(variant.id)) {
-            variantesMap.set(variant.id, {
-              id: variant.id,
-              mostrar_en_web: variant.mostrar_en_web !== false,
-              configuracion_stock: [],
-            });
-          }
-
-          const variantData = variantesMap.get(variant.id);
-          if (variant.cantidad_web > 0) {
-            variantData.configuracion_stock.push({
-              sucursal_id: branch.branch_id,
-              cantidad_asignada: variant.cantidad_web,
-            });
-          }
-        });
-      });
-
-      const productData = {
-        nombre: formData.nombre_web,
-        descripcion: formData.descripcion_web || "",
-        precio_web: parseFloat(formData.precio_web),
-        en_tienda_online: enTiendaOnline,
-        variantes: Array.from(variantesMap.values()),
-      };
-
-      console.log(
-        "📤 Datos finales a enviar al backend:",
-        JSON.stringify(productData, null, 2)
-      );
-      await updateProductWithVariants(editingProduct.id, productData);
-
-      toast.success("Producto actualizado correctamente!");
-      await loadOnlineProducts();
-      setShowEditModal(false);
-      setEditingProduct(null);
-      setUploadedImages([]);
-      setExistingImages([]);
-      setVariantsByBranch([]);
-    } catch (error) {
-      console.error("Error updating product:", error);
-      toast.error(error.detail || "Error al actualizar producto");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update web stock for a variant in a branch
-  const handleUpdateWebStock = (branchIndex, variantIndex, value) => {
-    const updatedVariants = [...variantsByBranch];
-    const variant = updatedVariants[branchIndex].variants[variantIndex];
-    const maxStock = variant.quantity; // Stock físico disponible
-
-    // Validar que sea un número válido
-    if (value === "") {
-      variant.cantidad_web = 0;
-    } else if (/^\d+$/.test(value)) {
-      // Solo permite números enteros positivos
-      const numValue = parseInt(value, 10);
-      variant.cantidad_web = Math.max(0, Math.min(numValue, maxStock));
-    }
-    // Si no es un número válido, no actualiza el valor
-
-    setVariantsByBranch(updatedVariants);
-  };
-
-  // Toggle variant visibility
-  const handleToggleVariantVisibility = (branchIndex, variantIndex) => {
-    const updatedVariants = [...variantsByBranch];
-    updatedVariants[branchIndex].variants[variantIndex].mostrar_en_web =
-      !updatedVariants[branchIndex].variants[variantIndex].mostrar_en_web;
-    setVariantsByBranch(updatedVariants);
+  const handleProductUpdated = async () => {
+    await loadOnlineProducts();
   };
 
   return (
     <AdminLayout>
       <div>
         <h1 className="text-4xl font-bold mb-2 tracking-wide">
-          Product Management
+          Gestor de productos
         </h1>
         <p className="text-base-content/60 mb-8">
-          Manage products in the online store
+          Gestiona los productos en la tienda online
         </p>
 
         {/* Error Alert */}
@@ -428,11 +251,9 @@ export default function AdminProductList() {
         <div className="card bg-base-100 shadow-lg mb-8">
           <div className="card-body">
             <h2 className="card-title text-primary">
-              Add Product to Online Store
+              Agregar productos en la tienda virtual{" "}
             </h2>
-            <p className="text-sm text-base-content/60 mb-4">
-              Search for a product by barcode to add it to the online store
-            </p>
+            <p className="text-sm text-base-content/60 mb-4"></p>
 
             <div className="flex gap-4">
               <input
@@ -463,21 +284,56 @@ export default function AdminProductList() {
           <div className="card-body">
             <div className="flex justify-between items-center mb-4">
               <h2 className="card-title text-primary">
-                Products in Online Store
+                Productos en la tienda online:
               </h2>
               <div className="badge badge-info badge-sm">
-                💡 Double click any row to edit
+                Doble clic en cualquier fila para editar
               </div>
+            </div>
+
+            {/* Search filter for online products */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Buscar por código de barras..."
+                className="input input-bordered flex-1"
+                value={searchOnlineBarcode}
+                onChange={(e) => setSearchOnlineBarcode(e.target.value)}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && handleOnlineProductSearch()
+                }
+              />
+              <button
+                className="btn btn-primary"
+                onClick={handleOnlineProductSearch}
+                disabled={searchLoading}
+              >
+                {searchLoading ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Buscar"
+                )}
+              </button>
+              {searchOnlineBarcode && (
+                <button
+                  className="btn btn-ghost"
+                  onClick={handleClearOnlineSearch}
+                >
+                  Limpiar
+                </button>
+              )}
             </div>
 
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <span className="loading loading-spinner loading-lg text-primary"></span>
               </div>
-            ) : onlineProducts.length === 0 ? (
+            ) : filteredOnlineProducts.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-base-content/60">
-                  No products in online store yet
+                  {searchOnlineBarcode
+                    ? "No se encontraron productos con ese código de barras"
+                    : "No products in online store yet"}
                 </p>
               </div>
             ) : (
@@ -485,16 +341,17 @@ export default function AdminProductList() {
                 <table className="table table-zebra">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Price</th>
+                      <th>#</th>
+                      <th>Nombre</th>
+                      <th>Proveedor</th>
+                      <th>Grupo</th>
+                      <th>Precio web</th>
+                      <th>Descuento</th>
                       <th>Stock</th>
-                      <th>Slug</th>
-                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {onlineProducts.map((product) => (
+                    {filteredOnlineProducts.map((product) => (
                       <tr
                         key={product.id}
                         onDoubleClick={() => handleProductDoubleClick(product)}
@@ -502,41 +359,31 @@ export default function AdminProductList() {
                         title="Double click to edit"
                       >
                         <td>{product.id}</td>
-                        <td className="font-medium">{product.nombre_web}</td>
+                        <td className="font-medium">{product.product_name}</td>
+                        <td className="text-sm">{product.provider || "-"}</td>
+                        <td className="text-sm">{product.group || "-"}</td>
+
+                        <td>${(product.precio_web || 0).toFixed(2)}</td>
+
                         <td>
-                          $
-                          {(
-                            product.precio_web ||
-                            product.sale_price ||
-                            0
-                          ).toFixed(2)}
+                          {product.discount > 0 ? (
+                            <span className="badge badge-success">
+                              {product.discount}%
+                            </span>
+                          ) : (
+                            <span className="text-base-content/40">-</span>
+                          )}
                         </td>
                         <td>
                           <span
                             className={`badge ${
-                              product.stock_disponible > 0
+                              product.stock > 0
                                 ? "badge-success"
                                 : "badge-error"
                             }`}
                           >
-                            {product.stock_disponible} units
+                            {product.stock} unidades
                           </span>
-                        </td>
-                        <td className="text-sm text-base-content/60">
-                          {product.slug}
-                        </td>
-                        <td>
-                          <div className="flex gap-2">
-                            <button
-                              className="btn btn-sm btn-error btn-outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveFromOnlineStore(product.id);
-                              }}
-                            >
-                              Remove
-                            </button>
-                          </div>
                         </td>
                       </tr>
                     ))}
@@ -741,405 +588,12 @@ export default function AdminProductList() {
         </AnimatePresence>
 
         {/* Edit Product Modal */}
-        <AnimatePresence>
-          {showEditModal && editingProduct && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowEditModal(false)}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-              />
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="fixed inset-0 flex items-center justify-center z-50 p-8"
-              >
-                <div className="card bg-base-100 w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
-                  <div className="card-body">
-                    <h2 className="card-title text-2xl mb-4">
-                      Editar producto: {editingProduct.nombre_web}
-                    </h2>
-
-                    <div className="space-y-4">
-                      {/* Product Info Form */}
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">
-                            Product Name (for web) *
-                          </span>
-                        </label>
-                        <input
-                          type="text"
-                          className="input input-bordered"
-                          value={formData.nombre_web}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              nombre_web: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">
-                            Description (for web)
-                          </span>
-                        </label>
-                        <textarea
-                          className="textarea textarea-bordered h-24"
-                          value={formData.descripcion_web}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              descripcion_web: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">Web Price *</span>
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          className="input input-bordered"
-                          value={formData.precio_web}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              precio_web: e.target.value,
-                            })
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div className="form-control">
-                        <label className="label">
-                          <span className="label-text">Slug (optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="input input-bordered"
-                          value={formData.slug}
-                          onChange={(e) =>
-                            setFormData({ ...formData, slug: e.target.value })
-                          }
-                          placeholder="product-name-slug"
-                        />
-                      </div>
-
-                      {/* Show in Online Store Toggle */}
-                      <div className="form-control">
-                        <label className="label cursor-pointer justify-start gap-4">
-                          <input
-                            type="checkbox"
-                            className="toggle toggle-primary"
-                            checked={enTiendaOnline}
-                            onChange={(e) =>
-                              setEnTiendaOnline(e.target.checked)
-                            }
-                          />
-                          <span className="label-text font-semibold">
-                            Mostrar en Tienda Online
-                          </span>
-                        </label>
-                      </div>
-
-                      {/* Variants Section */}
-                      <div className="divider">
-                        Variantes y Stock por Sucursal
-                      </div>
-
-                      {variantsByBranch.length === 0 ? (
-                        <div className="alert alert-info">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="stroke-current shrink-0 w-6 h-6"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <span>
-                            No se encontraron variantes para este producto
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="space-y-6">
-                          {variantsByBranch.map((branch, bIndex) => (
-                            <div
-                              key={branch.branch_id}
-                              className="card bg-base-200 shadow-md"
-                            >
-                              <div className="card-body p-4">
-                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                  <span className="badge badge-primary">
-                                    {branch.branch_name}
-                                  </span>
-                                </h3>
-
-                                {/* Variants Table */}
-                                <div className="overflow-x-auto">
-                                  <table className="table table-sm table-zebra">
-                                    <thead>
-                                      <tr>
-                                        <th>Color</th>
-                                        <th>Talle</th>
-                                        <th>Stock Físico</th>
-                                        <th>Stock Web</th>
-                                        <th>Mostrar</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {branch.variants.map(
-                                        (variant, vIndex) => (
-                                          <tr key={vIndex}>
-                                            <td>
-                                              <div className="flex items-center gap-2">
-                                                <div
-                                                  className="w-4 h-4 rounded-full border"
-                                                  style={{
-                                                    backgroundColor:
-                                                      variant.color_hex,
-                                                  }}
-                                                ></div>
-                                                <span className="text-sm">
-                                                  {variant.color}
-                                                </span>
-                                              </div>
-                                            </td>
-                                            <td className="font-semibold">
-                                              {variant.size}
-                                            </td>
-                                            <td>
-                                              <span className="badge badge-info">
-                                                {variant.quantity} unidades
-                                              </span>
-                                            </td>
-                                            <td>
-                                              <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                pattern="[0-9]*"
-                                                className="input input-bordered input-sm w-20"
-                                                value={variant.cantidad_web}
-                                                onChange={(e) =>
-                                                  handleUpdateWebStock(
-                                                    bIndex,
-                                                    vIndex,
-                                                    e.target.value
-                                                  )
-                                                }
-                                                placeholder="0"
-                                              />
-                                            </td>
-                                            <td>
-                                              <input
-                                                type="checkbox"
-                                                className="checkbox checkbox-primary checkbox-sm"
-                                                checked={
-                                                  variant.mostrar_en_web !==
-                                                  false
-                                                }
-                                                onChange={() =>
-                                                  handleToggleVariantVisibility(
-                                                    bIndex,
-                                                    vIndex
-                                                  )
-                                                }
-                                              />
-                                            </td>
-                                          </tr>
-                                        )
-                                      )}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="alert alert-warning mt-4">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="stroke-current shrink-0 h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                          />
-                        </svg>
-                        <span className="text-sm">
-                          <strong>Stock Web:</strong> Cantidad de unidades que
-                          se mostrarán disponibles en la tienda online. No puede
-                          exceder el stock físico disponible en cada sucursal.
-                        </span>
-                      </div>
-
-                      {/* Images Section */}
-                      <div className="divider">Product Images</div>
-
-                      {/* Existing Images */}
-                      {existingImages.length > 0 && (
-                        <div>
-                          <label className="label">
-                            <span className="label-text font-semibold">
-                              Existing Images
-                            </span>
-                          </label>
-                          <div className="grid grid-cols-3 gap-4">
-                            {existingImages.map((image, index) => (
-                              <div key={index} className="relative group">
-                                <img
-                                  src={
-                                    image.startsWith("http")
-                                      ? image
-                                      : `${
-                                          import.meta.env.VITE_IMAGE_URL ||
-                                          "http://localhost:8080"
-                                        }${image}`
-                                  }
-                                  alt={`Product ${index + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg"
-                                />
-                                <button
-                                  onClick={() => removeExistingImage(index)}
-                                  className="absolute top-1 right-1 btn btn-xs btn-circle btn-error opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Dropzone for new images */}
-                      <div>
-                        <label className="label">
-                          <span className="label-text font-semibold">
-                            Add New Images
-                          </span>
-                        </label>
-                        <div
-                          {...getRootProps()}
-                          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                            isDragActive
-                              ? "border-primary bg-primary/10"
-                              : "border-base-300 hover:border-primary"
-                          }`}
-                        >
-                          <input {...getInputProps()} />
-                          <Upload
-                            className="mx-auto mb-4 text-base-content/40"
-                            size={48}
-                          />
-                          {isDragActive ? (
-                            <p className="text-primary">
-                              Drop the images here...
-                            </p>
-                          ) : (
-                            <div>
-                              <p className="text-base-content/60 mb-2">
-                                Drag & drop images here, or click to select
-                              </p>
-                              <p className="text-xs text-base-content/40">
-                                Accepted formats: JPG, PNG, WEBP (Max 5MB each)
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Preview of uploaded images */}
-                      {uploadedImages.length > 0 && (
-                        <div>
-                          <label className="label">
-                            <span className="label-text font-semibold">
-                              New Images to Upload ({uploadedImages.length})
-                            </span>
-                          </label>
-                          <div className="grid grid-cols-3 gap-4">
-                            {uploadedImages.map((file, index) => (
-                              <div key={index} className="relative group">
-                                <img
-                                  src={file.preview}
-                                  alt={`Upload ${index + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg"
-                                />
-                                <button
-                                  onClick={() => removeUploadedImage(index)}
-                                  className="absolute top-1 right-1 btn btn-xs btn-circle btn-error opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <X size={14} />
-                                </button>
-                                <div className="absolute bottom-1 left-1 badge badge-sm badge-info">
-                                  New
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="card-actions justify-end mt-6 pt-4 border-t">
-                      <button
-                        className="btn btn-ghost"
-                        onClick={() => {
-                          setShowEditModal(false);
-                          setEditingProduct(null);
-                          setUploadedImages([]);
-                          setExistingImages([]);
-                        }}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={handleUpdateProduct}
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <>
-                            <span className="loading loading-spinner loading-sm"></span>
-                            Actualizanado...
-                          </>
-                        ) : (
-                          <>
-                            <ImageIcon size={18} />
-                            Actualizar Producto
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+        <EditProduct
+          product={editingProduct}
+          isOpen={showEditModal}
+          onClose={handleCloseEditModal}
+          onProductUpdated={handleProductUpdated}
+        />
       </div>
     </AdminLayout>
   );
