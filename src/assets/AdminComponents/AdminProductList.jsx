@@ -2,7 +2,7 @@ import AdminLayout from "../AdminComponents/AdminLayout";
 import EditProduct from "../AdminComponents/EditProduct";
 import { useState, useEffect } from "react";
 import {
-  fetchAdminInfoProducts,
+  fetchProducts,
   fetchAllProducts,
   toggleProductOnline,
   searchProductsByBarcodeAdmin,
@@ -20,7 +20,6 @@ export default function AdminProductList() {
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [error, setError] = useState(null);
 
@@ -38,7 +37,7 @@ export default function AdminProductList() {
   const loadOnlineProducts = async () => {
     try {
       setLoading(true);
-      const products = await fetchAdminInfoProducts();
+      const products = await fetchProducts();
       setOnlineProducts(products);
       setFilteredOnlineProducts(products);
       setError(null);
@@ -199,17 +198,25 @@ export default function AdminProductList() {
   // Handle double click to edit product
   const handleProductDoubleClick = (product) => {
     setEditingProduct(product);
-    setShowEditModal(true);
   };
 
   const handleCloseEditModal = () => {
-    setShowEditModal(false);
     setEditingProduct(null);
   };
 
   const handleProductUpdated = async () => {
     await loadOnlineProducts();
   };
+
+  if (editingProduct) {
+    return (
+      <EditProduct
+        product={editingProduct}
+        onClose={handleCloseEditModal}
+        onProductUpdated={handleProductUpdated}
+      />
+    );
+  }
 
   return (
     <AdminLayout>
@@ -342,12 +349,14 @@ export default function AdminProductList() {
                   <thead>
                     <tr>
                       <th>#</th>
+                      <th>Imagen</th>
                       <th>Nombre</th>
-                      <th>Proveedor</th>
-                      <th>Grupo</th>
-                      <th>Precio web</th>
+                      <th>Categoría</th>
+                      <th>Precio original web</th>
                       <th>Descuento</th>
+                      <th>Precio final web</th>
                       <th>Stock</th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -359,31 +368,73 @@ export default function AdminProductList() {
                         title="Double click to edit"
                       >
                         <td>{product.id}</td>
-                        <td className="font-medium">{product.product_name}</td>
-                        <td className="text-sm">{product.provider || "-"}</td>
-                        <td className="text-sm">{product.group || "-"}</td>
-
-                        <td>${(product.precio_web || 0).toFixed(2)}</td>
-
                         <td>
-                          {product.discount > 0 ? (
-                            <span className="badge badge-success">
-                              {product.discount}%
-                            </span>
+                          {product.images && product.images.length > 0 ? (
+                            <div className="avatar">
+                              <div className="w-12 h-12 rounded">
+                                <img
+                                  src={`${
+                                    import.meta.env.VITE_API_URL ||
+                                    "http://localhost:3000"
+                                  }${product.images[0]}`}
+                                  alt={product.nombre_web}
+                                  className="object-cover"
+                                />
+                              </div>
+                            </div>
                           ) : (
-                            <span className="text-base-content/40">-</span>
+                            <div className="w-12 h-12 bg-base-300 rounded flex items-center justify-center">
+                              <span className="text-xs">Sin imagen</span>
+                            </div>
                           )}
                         </td>
+                        <td className="font-medium">{product.nombre_web}</td>
+                        <td className="text-sm">{product.category || "-"}</td>
+                        <td className="font-semibold text-primary">
+                          ${(product.precio_web || 0).toLocaleString("es-AR")}
+                        </td>
+                          <td>
+                          {product.discount_percentage ? (
+                            <div className="flex flex-wrap gap-1">
+                              <span className="badge badge-info badge-sm">
+                                {product.discount_percentage}% off
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-base-content/40">
+                              0%
+                            </span>
+                          )}
+                        </td>
+                        <td className="font-bold text-accent">
+                          $
+                          {(product.precio_web *
+                            (1 - (product.discount_percentage || 0) / 100)
+                          ).toLocaleString("es-AR")}
+                        </td>
+
                         <td>
                           <span
                             className={`badge ${
-                              product.stock > 0
+                              product.stock_disponible > 0
                                 ? "badge-success"
                                 : "badge-error"
                             }`}
                           >
-                            {product.stock} unidades
+                            {product.stock_disponible} unidades
                           </span>
+                        </td>
+                      
+                        <td>
+                          <button
+                            className="btn btn-sm btn-error btn-outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFromOnlineStore(product.id);
+                            }}
+                          >
+                            Quitar
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -586,14 +637,6 @@ export default function AdminProductList() {
             </>
           )}
         </AnimatePresence>
-
-        {/* Edit Product Modal */}
-        <EditProduct
-          product={editingProduct}
-          isOpen={showEditModal}
-          onClose={handleCloseEditModal}
-          onProductUpdated={handleProductUpdated}
-        />
       </div>
     </AdminLayout>
   );
