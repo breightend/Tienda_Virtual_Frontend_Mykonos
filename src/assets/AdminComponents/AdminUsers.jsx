@@ -1,17 +1,14 @@
 import AdminLayout from "./AdminLayout";
 import { useState, useEffect } from "react";
-import {
-  getAllUsers,
-  changeUserRole,
-  changeUserStatus,
-} from "../services/adminService";
-import { User, Shield, CheckCircle, XCircle } from "lucide-react";
+import { getAllUsers, changeUserRole } from "../services/adminService";
+import { User, Shield, CheckCircle, XCircle, Crown } from "lucide-react";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState("all"); // all, customer, admin
+  const [filter, setFilter] = useState("all");
+  const [confirmAction, setConfirmAction] = useState(null); // Para controlar el modal de confirmación
 
   useEffect(() => {
     loadUsers();
@@ -36,13 +33,13 @@ export default function AdminUsers() {
     const newRole = currentRole === "admin" ? "customer" : "admin";
 
     if (currentRole === "admin") {
-      if (
-        !confirm(
-          "¿Estás seguro de quitar privilegios de administrador a este usuario?"
-        )
-      ) {
-        return;
-      }
+      setConfirmAction({
+        type: "removeAdmin",
+        userId,
+        newRole,
+      });
+      document.getElementById("confirm_modal").showModal();
+      return;
     }
 
     try {
@@ -54,15 +51,16 @@ export default function AdminUsers() {
     }
   };
 
-  const handleChangeStatus = async (userId, currentStatus) => {
-    const newStatus = currentStatus === "active" ? "inactive" : "active";
+  const confirmChangeRole = async () => {
+    if (!confirmAction) return;
 
     try {
-      await changeUserStatus(userId, newStatus);
+      await changeUserRole(confirmAction.userId, confirmAction.newRole);
       await loadUsers();
+      setConfirmAction(null);
     } catch (error) {
-      console.error("Error changing user status:", error);
-      setError(error.detail || "Error al cambiar estado de usuario");
+      console.error("Error changing user role:", error);
+      setError(error.detail || "Error al cambiar rol de usuario");
     }
   };
 
@@ -151,7 +149,7 @@ export default function AdminUsers() {
                         <td>
                           <div className="flex items-center gap-2">
                             {user.role === "admin" ? (
-                              <Shield size={16} className="text-warning" />
+                              <Crown size={16} className="text-warning" />
                             ) : (
                               <User size={16} className="text-info" />
                             )}
@@ -204,41 +202,21 @@ export default function AdminUsers() {
                             : "N/A"}
                         </td>
                         <td>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() =>
-                                handleChangeRole(user.id, user.role)
-                              }
-                              className={`btn btn-xs ${
-                                user.role === "admin"
-                                  ? "btn-warning"
-                                  : "btn-info"
-                              }`}
-                              title={
-                                user.role === "admin"
-                                  ? "Quitar admin"
-                                  : "Hacer admin"
-                              }
-                            >
-                              {user.role === "admin"
-                                ? "Quitar Admin"
-                                : "Hacer Admin"}
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleChangeStatus(user.id, user.status)
-                              }
-                              className={`btn btn-xs ${
-                                user.status === "active"
-                                  ? "btn-error"
-                                  : "btn-success"
-                              }`}
-                            >
-                              {user.status === "active"
-                                ? "Desactivar"
-                                : "Activar"}
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleChangeRole(user.id, user.role)}
+                            className={`btn btn-xs ${
+                              user.role === "admin" ? "btn-warning" : "btn-info"
+                            }`}
+                            title={
+                              user.role === "admin"
+                                ? "Quitar admin"
+                                : "Hacer admin"
+                            }
+                          >
+                            {user.role === "admin"
+                              ? "Quitar Admin"
+                              : "Hacer Admin"}
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -248,6 +226,25 @@ export default function AdminUsers() {
             )}
           </div>
         </div>
+
+        {/* Modal de Confirmación */}
+        <dialog id="confirm_modal" className="modal">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Confirmar Acción</h3>
+            <p className="py-4">
+              ¿Estás seguro de quitar privilegios de administrador a este
+              usuario?
+            </p>
+            <div className="modal-action">
+              <form method="dialog">
+                <button className="btn btn-ghost mr-2">Cancelar</button>
+                <button className="btn btn-warning" onClick={confirmChangeRole}>
+                  Confirmar
+                </button>
+              </form>
+            </div>
+          </div>
+        </dialog>
       </div>
     </AdminLayout>
   );

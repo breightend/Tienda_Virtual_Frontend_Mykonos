@@ -18,9 +18,10 @@ export default function AdminDiscounts() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [discountToDelete, setDiscountToDelete] = useState(null);
 
   const [formData, setFormData] = useState({
-    type: "group", // group or product
+    type: "group",
     group_id: "",
     discount_percentage: "",
     start_date: "",
@@ -52,20 +53,29 @@ export default function AdminDiscounts() {
 
   const handleCreateDiscount = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.group_id || !formData.discount_percentage) {
       setError("Por favor completa todos los campos requeridos");
       return;
     }
 
     try {
-      await applyGroupDiscount({
+      // Construir el payload solo con los campos que tienen valor
+      const payload = {
         group_id: parseInt(formData.group_id),
         discount_percentage: parseFloat(formData.discount_percentage),
-        start_date: formData.start_date || undefined,
-        end_date: formData.end_date || undefined,
         apply_to_children: formData.apply_to_children,
-      });
+      };
+
+      // Solo agregar fechas si tienen valor
+      if (formData.start_date) {
+        payload.start_date = formData.start_date;
+      }
+      if (formData.end_date) {
+        payload.end_date = formData.end_date;
+      }
+
+      await applyGroupDiscount(payload);
 
       setSuccess("Descuento aplicado exitosamente");
       setShowCreateModal(false);
@@ -84,14 +94,18 @@ export default function AdminDiscounts() {
     }
   };
 
-  const handleDeleteDiscount = async (discountId) => {
-    if (!confirm("¿Estás seguro de eliminar este descuento? Los precios se restaurarán.")) {
-      return;
-    }
+  const handleDeleteDiscount = (discountId) => {
+    setDiscountToDelete(discountId);
+    document.getElementById("delete_modal").showModal();
+  };
+
+  const confirmDeleteDiscount = async () => {
+    if (!discountToDelete) return;
 
     try {
-      await deleteDiscount(discountId);
+      await deleteDiscount(discountToDelete);
       setSuccess("Descuento eliminado exitosamente");
+      setDiscountToDelete(null);
       await loadData();
     } catch (error) {
       console.error("Error deleting discount:", error);
@@ -116,8 +130,12 @@ export default function AdminDiscounts() {
       <div>
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2 tracking-wide">Gestión de Descuentos</h1>
-            <p className="text-base-content/60">Administrar descuentos por grupos de productos</p>
+            <h1 className="text-4xl font-bold mb-2 tracking-wide">
+              Gestión de Descuentos
+            </h1>
+            <p className="text-base-content/60">
+              Administrar descuentos por grupos de productos
+            </p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -132,14 +150,24 @@ export default function AdminDiscounts() {
         {error && (
           <div className="alert alert-error mb-6">
             <span>{error}</span>
-            <button onClick={() => setError(null)} className="btn btn-sm btn-ghost">✕</button>
+            <button
+              onClick={() => setError(null)}
+              className="btn btn-sm btn-ghost"
+            >
+              ✕
+            </button>
           </div>
         )}
 
         {success && (
           <div className="alert alert-success mb-6">
             <span>{success}</span>
-            <button onClick={() => setSuccess(null)} className="btn btn-sm btn-ghost">✕</button>
+            <button
+              onClick={() => setSuccess(null)}
+              className="btn btn-sm btn-ghost"
+            >
+              ✕
+            </button>
           </div>
         )}
 
@@ -152,8 +180,13 @@ export default function AdminDiscounts() {
               </div>
             ) : discounts.length === 0 ? (
               <div className="text-center py-16">
-                <Percent size={48} className="mx-auto text-base-content/20 mb-4" />
-                <p className="text-base-content/60">No hay descuentos activos</p>
+                <Percent
+                  size={48}
+                  className="mx-auto text-base-content/20 mb-4"
+                />
+                <p className="text-base-content/60">
+                  No hay descuentos activos
+                </p>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="btn btn-primary mt-4"
@@ -192,15 +225,29 @@ export default function AdminDiscounts() {
                             {discount.discount_percentage}%
                           </span>
                         </td>
-                        <td className="text-center">{discount.affected_products}</td>
+                        <td className="text-center">
+                          {discount.affected_products}
+                        </td>
                         <td className="text-sm">
                           {discount.start_date && (
-                            <div>Desde: {new Date(discount.start_date).toLocaleDateString('es-AR')}</div>
+                            <div>
+                              Desde:{" "}
+                              {new Date(discount.start_date).toLocaleDateString(
+                                "es-AR"
+                              )}
+                            </div>
                           )}
                           {discount.end_date && (
-                            <div>Hasta: {new Date(discount.end_date).toLocaleDateString('es-AR')}</div>
+                            <div>
+                              Hasta:{" "}
+                              {new Date(discount.end_date).toLocaleDateString(
+                                "es-AR"
+                              )}
+                            </div>
                           )}
-                          {!discount.start_date && !discount.end_date && "Sin límite"}
+                          {!discount.start_date &&
+                            !discount.end_date &&
+                            "Sin límite"}
                         </td>
                         <td>
                           <div className="form-control">
@@ -209,7 +256,12 @@ export default function AdminDiscounts() {
                                 type="checkbox"
                                 className="toggle toggle-success"
                                 checked={discount.is_active}
-                                onChange={() => handleToggleDiscount(discount.discount_id, discount.is_active)}
+                                onChange={() =>
+                                  handleToggleDiscount(
+                                    discount.discount_id,
+                                    discount.is_active
+                                  )
+                                }
                               />
                               <span className="label-text">
                                 {discount.is_active ? "Activo" : "Inactivo"}
@@ -219,7 +271,9 @@ export default function AdminDiscounts() {
                         </td>
                         <td>
                           <button
-                            onClick={() => handleDeleteDiscount(discount.discount_id)}
+                            onClick={() =>
+                              handleDeleteDiscount(discount.discount_id)
+                            }
                             className="btn btn-sm btn-error btn-outline gap-1"
                           >
                             <Trash2 size={14} />
@@ -246,7 +300,7 @@ export default function AdminDiscounts() {
                 onClick={() => setShowCreateModal(false)}
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
               />
-              
+
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -255,23 +309,32 @@ export default function AdminDiscounts() {
               >
                 <div className="card bg-base-100 w-full max-w-2xl shadow-2xl">
                   <div className="card-body">
-                    <h2 className="card-title text-2xl mb-4">Crear Nuevo Descuento</h2>
-                    
+                    <h2 className="card-title text-2xl mb-4">
+                      Crear Nuevo Descuento
+                    </h2>
+
                     <form onSubmit={handleCreateDiscount} className="space-y-4">
                       <div className="form-control">
                         <label className="label">
-                          <span className="label-text">Grupo de Productos *</span>
+                          <span className="label-text">
+                            Grupo de Productos *
+                          </span>
                         </label>
                         <select
                           className="select select-bordered"
                           value={formData.group_id}
-                          onChange={(e) => setFormData({ ...formData, group_id: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              group_id: e.target.value,
+                            })
+                          }
                           required
                         >
                           <option value="">Seleccionar grupo...</option>
                           {groups.map((group) => (
                             <option key={group.id} value={group.id}>
-                              {group.name}
+                              {group.group_name}
                             </option>
                           ))}
                         </select>
@@ -279,7 +342,9 @@ export default function AdminDiscounts() {
 
                       <div className="form-control">
                         <label className="label">
-                          <span className="label-text">Porcentaje de Descuento * (%)</span>
+                          <span className="label-text">
+                            Porcentaje de Descuento * (%)
+                          </span>
                         </label>
                         <input
                           type="number"
@@ -288,7 +353,12 @@ export default function AdminDiscounts() {
                           max="100"
                           className="input input-bordered"
                           value={formData.discount_percentage}
-                          onChange={(e) => setFormData({ ...formData, discount_percentage: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              discount_percentage: e.target.value,
+                            })
+                          }
                           placeholder="Ej: 10"
                           required
                         />
@@ -297,37 +367,58 @@ export default function AdminDiscounts() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="form-control">
                           <label className="label">
-                            <span className="label-text">Fecha Inicio (opcional)</span>
+                            <span className="label-text">
+                              Fecha Inicio (opcional)
+                            </span>
                           </label>
                           <input
                             type="datetime-local"
                             className="input input-bordered"
                             value={formData.start_date}
-                            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                start_date: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
                         <div className="form-control">
                           <label className="label">
-                            <span className="label-text">Fecha Fin (opcional)</span>
+                            <span className="label-text">
+                              Fecha Fin (opcional)
+                            </span>
                           </label>
                           <input
                             type="datetime-local"
                             className="input input-bordered"
                             value={formData.end_date}
-                            onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                end_date: e.target.value,
+                              })
+                            }
                           />
                         </div>
                       </div>
 
                       <div className="form-control">
                         <label className="label cursor-pointer">
-                          <span className="label-text">Aplicar a subgrupos también</span>
+                          <span className="label-text">
+                            Aplicar a subgrupos también
+                          </span>
                           <input
                             type="checkbox"
                             className="checkbox checkbox-primary"
                             checked={formData.apply_to_children}
-                            onChange={(e) => setFormData({ ...formData, apply_to_children: e.target.checked })}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                apply_to_children: e.target.checked,
+                              })
+                            }
                           />
                         </label>
                       </div>
@@ -351,6 +442,28 @@ export default function AdminDiscounts() {
             </>
           )}
         </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <dialog id="delete_modal" className="modal">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Confirmar Eliminación</h3>
+            <p className="py-4">
+              ¿Estás seguro de eliminar este descuento? Los precios se
+              restaurarán a sus valores originales.
+            </p>
+            <div className="modal-action">
+              <form method="dialog">
+                <button className="btn btn-ghost mr-2">Cancelar</button>
+                <button
+                  className="btn btn-error"
+                  onClick={confirmDeleteDiscount}
+                >
+                  Eliminar
+                </button>
+              </form>
+            </div>
+          </div>
+        </dialog>
       </div>
     </AdminLayout>
   );

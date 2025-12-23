@@ -227,15 +227,6 @@ export default function AdminProductList() {
     await loadOnlineProducts();
   };
 
-  console.log(
-    "Resultado de buscar por codigo de barra en linea:",
-    filteredOnlineProducts
-  );
-  console.log("Codigo de barra buscado en linea:", searchOnlineBarcode);
-  console.log(
-    " resultado de Codigo de barras buscado en toda la bd: ",
-    allProducts
-  );
 
   if (newProduct) {
     return (
@@ -305,7 +296,7 @@ export default function AdminProductList() {
             <div className="flex gap-4">
               <input
                 type="text"
-                placeholder="Enter barcode (provider code)"
+                placeholder="Ingresa el código de barras del producto"
                 className="input input-bordered flex-1"
                 value={searchBarcode}
                 onChange={(e) => setSearchBarcode(e.target.value)}
@@ -542,104 +533,106 @@ export default function AdminProductList() {
                       </button>
                     </div>
 
-                    {/* Search Results - Grid mejorado */}
+                    {/* Search Results - Diseño horizontal */}
                     {allProducts.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-4">
                         {allProducts.map((product) => (
                           <div
                             key={product.id}
-                            className="card bg-base-200 shadow-md hover:shadow-xl transition-all"
+                            className="card card-side bg-base-200 shadow-md hover:shadow-xl transition-all"
                           >
-                            <div className="card-body p-4">
-                              {/* Imagen del producto */}
-                              {product.image_url && (
-                                <div className="w-full h-48 mb-3 rounded-lg overflow-hidden bg-base-300">
-                                  <img
-                                    src={`${
-                                      import.meta.env.VITE_API_URL ||
-                                      "http://localhost:3000"
-                                    }${product.image_url}`}
-                                    alt={product.product_name}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.target.style.display = "none";
-                                      e.target.parentElement.innerHTML =
-                                        '<div class="w-full h-full flex items-center justify-center text-base-content/40"><span>Sin imagen</span></div>';
-                                    }}
-                                  />
+                            {/* Imagen del producto a la izquierda */}
+                            <figure className="w-64 flex-shrink-0">
+                              {product.image_url ? (
+                                <img
+                                  src={`${
+                                    import.meta.env.VITE_API_URL ||
+                                    "http://localhost:3000"
+                                  }${product.image_url}`}
+                                  alt={product.product_name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = "none";
+                                    e.target.parentElement.innerHTML =
+                                      '<div class="w-full h-full flex items-center justify-center bg-base-300 text-base-content/40"><span>Sin imagen</span></div>';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-base-300 text-base-content/40">
+                                  <span>Sin imagen</span>
                                 </div>
                               )}
+                            </figure>
 
-                              {/* Información del producto */}
-                              <div className="space-y-2">
-                                <h3 className="font-bold text-lg line-clamp-2">
-                                  {product.product_name}
-                                </h3>
+                            {/* Información del producto a la derecha */}
+                            <div className="card-body flex-1">
+                              <h2 className="card-title text-xl">
+                                {product.product_name}
+                              </h2>
 
-                                <div className="flex flex-wrap gap-2">
-                                  <span className="badge badge-primary badge-sm">
-                                    {product.group_name || "Sin grupo"}
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                <span className="badge badge-primary badge-sm">
+                                  {product.group_name || "Sin grupo"}
+                                </span>
+                                <span
+                                  className={`badge badge-sm ${
+                                    product.en_tienda_online
+                                      ? "badge-success"
+                                      : "badge-ghost"
+                                  }`}
+                                >
+                                  {product.en_tienda_online
+                                    ? "✅ Ya en tienda"
+                                    : "⭕ No publicado"}
+                                </span>
+                                {product.discount_percentage > 0 && (
+                                  <span className="badge badge-warning badge-sm">
+                                    {product.discount_percentage}% OFF
                                   </span>
-                                  <span
-                                    className={`badge badge-sm ${
-                                      product.en_tienda_online
-                                        ? "badge-success"
-                                        : "badge-ghost"
-                                    }`}
-                                  >
-                                    {product.en_tienda_online
-                                      ? "✅ Ya en tienda"
-                                      : "⭕ No publicado"}
-                                  </span>
-                                  {product.discount_percentage > 0 && (
-                                    <span className="badge badge-warning badge-sm">
-                                      {product.discount_percentage}% OFF
-                                    </span>
-                                  )}
-                                </div>
-
-                                <div className="divider my-2"></div>
-
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                  <div>
-                                    <p className="text-base-content/60">
-                                      Código:
-                                    </p>
-                                    <p className="font-mono font-semibold">
-                                      {product.provider_code}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-base-content/60">
-                                      Precio:
-                                    </p>
-                                    <p className="font-bold text-primary text-lg">
-                                      $
-                                      {product.sale_price?.toLocaleString(
-                                        "es-AR"
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {product.description && (
-                                  <p className="text-sm text-base-content/70 line-clamp-2 mt-2">
-                                    {product.description}
-                                  </p>
                                 )}
+                              </div>
 
-                                <div className="text-xs text-base-content/60 mt-2">
-                                  <p>Proveedor: {product.provider_name}</p>
+                              {product.description && (
+                                <p className="text-sm text-base-content/70 line-clamp-2 mb-3">
+                                  {product.description}
+                                </p>
+                              )}
+
+                              <div className="grid grid-cols-3 gap-4 text-sm mb-2">
+                                <div>
+                                  <p className="text-base-content/60">
+                                    Código:
+                                  </p>
+                                  <p className="font-mono font-semibold">
+                                    {product.provider_code}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-base-content/60">
+                                    Precio:
+                                  </p>
+                                  <p className="font-bold text-primary text-lg">
+                                    $
+                                    {product.sale_price?.toLocaleString(
+                                      "es-AR"
+                                    )}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-base-content/60">
+                                    Proveedor:
+                                  </p>
+                                  <p className="font-semibold">
+                                    {product.provider_name}
+                                  </p>
                                 </div>
                               </div>
 
-                              {/* Botón de acción */}
-                              <div className="card-actions mt-4">
+                              <div className="card-actions justify-end">
                                 {product.en_tienda_online ? (
                                   <button
-                                    className="btn btn-sm btn-outline w-full"
+                                    className="btn btn-outline"
                                     onClick={() => {
-                                      // Buscar el producto completo en onlineProducts para editarlo
                                       const fullProduct = onlineProducts.find(
                                         (p) => p.id === product.id
                                       );
@@ -653,7 +646,7 @@ export default function AdminProductList() {
                                   </button>
                                 ) : (
                                   <button
-                                    className="btn btn-primary btn-sm w-full gap-2"
+                                    className="btn btn-primary gap-2"
                                     onClick={async () => {
                                       try {
                                         setSearchLoading(true);
@@ -661,7 +654,6 @@ export default function AdminProductList() {
                                           "🔍 Obteniendo datos completos del producto ID:",
                                           product.id
                                         );
-                                        // Obtener información completa del producto
                                         const fullProductData =
                                           await searProductByIdAdmin(
                                             product.id
