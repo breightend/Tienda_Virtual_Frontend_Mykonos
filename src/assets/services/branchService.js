@@ -14,12 +14,7 @@ const API_URL = import.meta.env.VITE_API_URL + "/branch";
  */
 export const getAllBranches = async () => {
   try {
-    const token = getAuthToken();
-    if (!token) throw new Error("Authentication required");
-
-    const response = await axios.get(`${API_URL}/all`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axios.get(`${API_URL}/all`);
     return response.data;
   } catch (error) {
     console.error("Error fetching branches:", error);

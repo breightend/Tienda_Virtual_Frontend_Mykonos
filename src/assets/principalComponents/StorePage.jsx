@@ -96,26 +96,21 @@ export default function StorePage() {
         setLoading(true);
         let data;
 
-        // First, load products based on category filter
         if (selectedCategory) {
           data = await fetchProductsByGroupName(selectedCategory.group_name);
         } else {
           data = await fetchProducts();
         }
 
-        // Then, if branch is selected, filter/enrich with branch-specific stock
         if (selectedBranch) {
-          // For each product, get variants available in the selected branch
           const productsWithBranchStock = await Promise.all(
             data.map(async (product) => {
               try {
-                // Get branch-specific variants
                 const branchData = await getWebProductsVariantsByBranch(
                   product.id,
                   selectedBranch.id
                 );
 
-                // branchData is an array with single branch object
                 if (
                   branchData &&
                   branchData.length > 0 &&
@@ -123,16 +118,14 @@ export default function StorePage() {
                 ) {
                   const branchVariants = branchData[0].variants;
 
-                  // Filter to only variants with quantity > 0 in this branch
                   const availableVariants = branchVariants.filter(
                     (v) => v.quantity > 0
                   );
 
                   if (availableVariants.length === 0) {
-                    return null; // No stock in this branch
+                    return null; 
                   }
 
-                  // Update product with branch-specific variants
                   return {
                     ...product,
                     variantes: availableVariants.map((v) => ({
@@ -140,7 +133,7 @@ export default function StorePage() {
                       talle: v.size,
                       color: v.color,
                       color_hex: v.color_hex,
-                      stock: v.quantity, // Stock in this specific branch
+                      stock: v.quantity,
                     })),
                     stock_disponible: availableVariants.reduce(
                       (sum, v) => sum + v.quantity,
@@ -148,7 +141,7 @@ export default function StorePage() {
                     ),
                   };
                 }
-                return null; // No variants found
+                return null; 
               } catch (err) {
                 console.error(
                   `Error fetching variants for product ${product.id}:`,
@@ -159,7 +152,6 @@ export default function StorePage() {
             })
           );
 
-          // Filter out products with no stock in selected branch
           data = productsWithBranchStock.filter((p) => p !== null);
         }
 
@@ -176,7 +168,6 @@ export default function StorePage() {
     loadProducts();
   }, [selectedCategory, selectedBranch]);
 
-  // Get unique colors and sizes from variants
   const getUniqueColors = (variantes) => {
     if (!variantes || variantes.length === 0) return [];
     const colorMap = new Map();
@@ -206,7 +197,6 @@ export default function StorePage() {
       return;
     }
 
-    // Validate product has a valid price (not null, not undefined, and greater than 0)
     const price = product.precio_web || product.sale_price;
     if (!price || price <= 0) {
       toast.error("Este producto no tiene un precio válido configurado");
@@ -265,7 +255,6 @@ export default function StorePage() {
   const handleConfirmAddToCart = async () => {
     if (!selectedProduct) return;
 
-    // Validate product has a valid price
     const price = selectedProduct.precio_web || selectedProduct.sale_price;
     if (!price || price <= 0) {
       toast.error("Este producto no tiene un precio válido configurado");
@@ -279,7 +268,6 @@ export default function StorePage() {
       return;
     }
 
-    // Validate variant selection
     const uniqueColors = getUniqueColors(selectedProduct.variantes);
     const uniqueSizes = getUniqueSizes(selectedProduct.variantes);
 
@@ -292,17 +280,12 @@ export default function StorePage() {
       toast.error("Por favor selecciona un talle");
       return;
     }
-
-    // Find the specific variant ID
     let variantId = null;
 
-    // If we have variants, we must find the matching one
     if (selectedProduct.variantes && selectedProduct.variantes.length > 0) {
-      // If only one variant, use it directly
       if (selectedProduct.variantes.length === 1) {
         variantId = selectedProduct.variantes[0].variant_id;
       } else {
-        // Find the variant that matches the selected color and size
         const selectedVariant = selectedProduct.variantes.find(
           (v) =>
             (uniqueColors.length === 0 || v.color === selectedColor) &&
