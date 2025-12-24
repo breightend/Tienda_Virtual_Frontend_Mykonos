@@ -24,70 +24,108 @@ import AdminDiscounts from "./assets/AdminComponents/AdminDiscounts.jsx";
 import { Toaster } from "react-hot-toast";
 import CheckOut from "./assets/principalComponents/CheckOut.jsx";
 import AdminNewProduct from "./assets/AdminComponents/AdminNewProduct.jsx";
+import InitialLoader from "./assets/supportComponents/InitialLoader.jsx";
+import { useState, useEffect } from "react";
+import { fetchProducts } from "./assets/services/productService.js";
+import { AnimatePresence } from "motion/react";
 
 function App() {
   const [location] = useLocation();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const hideNavbar =
     location === "/email-verification" || location.startsWith("/admin");
 
+  useEffect(() => {
+    // Precargar datos iniciales
+    const preloadData = async () => {
+      try {
+        // Simular carga mínima para mejor UX
+        const minLoadTime = new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // Precargar productos de la tienda
+        const productsPromise = fetchProducts().catch((err) => {
+          console.error("Error precargando productos:", err);
+          return [];
+        });
+
+        // Esperar ambas promesas
+        await Promise.all([minLoadTime, productsPromise]);
+      } catch (error) {
+        console.error("Error en precarga:", error);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    preloadData();
+  }, []);
+
   return (
     <>
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-          success: {
-            duration: 2000,
-            iconTheme: {
-              primary: "#10b981",
-              secondary: "#fff",
-            },
-          },
-          error: {
-            duration: 4000,
-            iconTheme: {
-              primary: "#ef4444",
-              secondary: "#fff",
-            },
-          },
-        }}
-      />
-      {!hideNavbar && <Navbar />}
-      <div style={{ paddingTop: hideNavbar ? "0" : "64px" }}>
-        <Route path="/" component={LandingPage} />
-        <Route path="/store" component={StorePage} />
-        <Route path="/user-info" component={UserInfo} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="/carrito" component={Carrito} />
-        <Route path="/contact-us" component={ContactUs} />
-        <Route path="/my-purchases" component={MyPurchases} />
-        <Route path="/email-verification" component={EmailVerification} />
-        <Route path="/order-tracking/:orderId" component={OrderTracking} />
-        <Route path="/checkout" component={CheckOut} />
-        <Route path="'/newProducto" component={AdminNewProduct} />
+      <AnimatePresence mode="wait">
+        {isInitialLoading && <InitialLoader key="loader" />}
+      </AnimatePresence>
 
-        {/* Admin Routes */}
-        <Route path="/admin">
-          {() => <ProtectedRoute component={AdminDashboard} />}
-        </Route>
-        <Route path="/admin/products">
-          {() => <ProtectedRoute component={AdminProductList} />}
-        </Route>
-        <Route path="/admin/orders">
-          {() => <ProtectedRoute component={AdminOrders} />}
-        </Route>
-        <Route path="/admin/users">
-          {() => <ProtectedRoute component={AdminUsers} />}
-        </Route>
-        <Route path="/admin/discounts">
-          {() => <ProtectedRoute component={AdminDiscounts} />}
-        </Route>
-      </div>
+      {!isInitialLoading && (
+        <>
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: "#363636",
+                color: "#fff",
+              },
+              success: {
+                duration: 2000,
+                iconTheme: {
+                  primary: "#10b981",
+                  secondary: "#fff",
+                },
+              },
+              error: {
+                duration: 4000,
+                iconTheme: {
+                  primary: "#ef4444",
+                  secondary: "#fff",
+                },
+              },
+            }}
+          />
+          {!hideNavbar && <Navbar />}
+          <div style={{ paddingTop: hideNavbar ? "0" : "64px" }}>
+            <Route path="/" component={LandingPage} />
+            <Route path="/store" component={StorePage} />
+            <Route path="/user-info" component={UserInfo} />
+            <Route path="/login" component={Login} />
+            <Route path="/register" component={Register} />
+            <Route path="/carrito" component={Carrito} />
+            <Route path="/contact-us" component={ContactUs} />
+            <Route path="/my-purchases" component={MyPurchases} />
+            <Route path="/email-verification" component={EmailVerification} />
+            <Route path="/order-tracking/:orderId" component={OrderTracking} />
+            <Route path="/checkout" component={CheckOut} />
+            <Route path="'/newProducto" component={AdminNewProduct} />
+
+            {/* Admin Routes */}
+            <Route path="/admin">
+              {() => <ProtectedRoute component={AdminDashboard} />}
+            </Route>
+            <Route path="/admin/products">
+              {() => <ProtectedRoute component={AdminProductList} />}
+            </Route>
+            <Route path="/admin/orders">
+              {() => <ProtectedRoute component={AdminOrders} />}
+            </Route>
+            <Route path="/admin/users">
+              {() => <ProtectedRoute component={AdminUsers} />}
+            </Route>
+            <Route path="/admin/discounts">
+              {() => <ProtectedRoute component={AdminDiscounts} />}
+            </Route>
+          </div>
+        </>
+      )}
     </>
   );
 }

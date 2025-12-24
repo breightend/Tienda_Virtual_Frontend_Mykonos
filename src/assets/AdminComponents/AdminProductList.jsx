@@ -462,7 +462,7 @@ export default function AdminProductList() {
                                   <img
                                     src={`${
                                       import.meta.env.VITE_API_URL ||
-                                      "http://localhost:3000"
+                                      "http://localhost:8000"
                                     }${product.images[0]}`}
                                     alt={product.nombre_web}
                                     className="object-cover"
@@ -593,7 +593,7 @@ export default function AdminProductList() {
                                 <img
                                   src={`${
                                     import.meta.env.VITE_API_URL ||
-                                    "http://localhost:3000"
+                                    "http://localhost:8000"
                                   }${product.image_url}`}
                                   alt={product.product_name}
                                   className="w-full h-full object-cover"

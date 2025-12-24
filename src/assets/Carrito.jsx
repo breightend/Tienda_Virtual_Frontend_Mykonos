@@ -149,7 +149,10 @@ export default function Carrito() {
                             src={
                               item.product_image.startsWith("http")
                                 ? item.product_image
-                                : `http://localhost:8080${item.product_image}`
+                                : `${
+                                    import.meta.env.VITE_API_URL ||
+                                    "http://localhost:8000"
+                                  }${item.product_image}`
                             }
                             alt={item.product_name}
                             className="w-full h-full object-cover"

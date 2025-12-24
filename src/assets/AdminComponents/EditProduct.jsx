@@ -436,8 +436,8 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
                             image.startsWith("http")
                               ? image
                               : `${
-                                  import.meta.env.VITE_IMAGE_URL ||
-                                  "http://localhost:8080"
+                                  import.meta.env.VITE_API_URL ||
+                                  "http://localhost:8000"
                                 }${image}`
                           }
                           alt={`Product ${index + 1}`}

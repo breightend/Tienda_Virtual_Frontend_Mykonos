@@ -84,8 +84,9 @@ export default function StorePage() {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "https://via.placeholder.com/400x600";
     if (imagePath.startsWith("http")) return imagePath;
+    // Usar VITE_API_URL ya que las imágenes se sirven desde el backend
     const imageBaseUrl =
-      import.meta.env.VITE_IMAGE_URL || "http://localhost:8080";
+      import.meta.env.VITE_API_URL || "http://localhost:8000";
     return `${imageBaseUrl}${imagePath}`;
   };
 

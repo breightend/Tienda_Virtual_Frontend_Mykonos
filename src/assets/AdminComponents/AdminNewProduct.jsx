@@ -356,7 +356,7 @@ export default function AdminNewProduct({ product, onClose, onProductAdded }) {
                   <h2 className="card-title text-lg">Imagen actual</h2>
                   <img
                     src={`${
-                      import.meta.env.VITE_API_URL || "http://localhost:3000"
+                      import.meta.env.VITE_API_URL || "http://localhost:8000"
                     }${product.image_url}`}
                     alt={product.product_name}
                     className="w-full h-64 object-cover rounded-lg"
