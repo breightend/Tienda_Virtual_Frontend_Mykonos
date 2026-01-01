@@ -2,6 +2,9 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "../context/AuthContext";
+import { Eye, EyeOff, Mail, CheckCircle, RefreshCw } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function Register() {
   const [location, setLocation] = useLocation();
@@ -15,19 +18,22 @@ export default function Register() {
   });
   const [registerError, setRegisterError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setRegisterError("");
     setError(null);
 
-    // Validate passwords match
+    
     if (formData.password !== formData.confirmPassword) {
       setRegisterError("Las contraseñas no coinciden");
       return;
     }
 
-    // Validate password length
+    
     if (formData.password.length < 6) {
       setRegisterError("La contraseña debe tener al menos 6 caracteres");
       return;
@@ -38,15 +44,37 @@ export default function Register() {
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
       
+      setRegisteredEmail(formData.email);
       setShowSuccess(true);
-      
-      // Backend now handles sending verification email
-      
-      setTimeout(() => {
-        setLocation("/");
-      }, 3000);
     } catch (error) {
       setRegisterError(error.detail || "Registration failed. Please try again.");
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setIsResending(true);
+    setResendMessage("");
+    
+    try {
+      const response = await fetch(`${API_URL}/api/users/resend-verification`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: registeredEmail }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResendMessage("✓ Email de verificación enviado exitosamente");
+      } else {
+        setResendMessage("✗ " + (data.detail || "Error al enviar el email"));
+      }
+    } catch (error) {
+      setResendMessage("✗ Error de conexión con el servidor");
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -74,24 +102,97 @@ export default function Register() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="card bg-base-100 shadow-2xl max-w-md w-full"
+          className="card bg-base-100 shadow-2xl max-w-lg w-full"
         >
           <div className="card-body text-center p-8">
-            <div className="text-success text-6xl mb-4">✓</div>
-            <h2 className="text-2xl font-light tracking-wide mb-4">
-              ¡Registro Exitoso!
+            {/* Success Icon */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+              className="flex justify-center mb-6"
+            >
+              <div className="bg-success/20 p-4 rounded-full">
+                <CheckCircle className="h-16 w-16 text-success" />
+              </div>
+            </motion.div>
+
+            {/* Title */}
+            <h2 className="text-3xl font-light tracking-wide mb-4">
+              ¡Cuenta Creada!
             </h2>
-            <p className="text-base-content/60 font-light mb-6">
-              Por favor, revisa tu correo electrónico para verificar tu cuenta.
-            </p>
-            <p className="text-sm text-base-content/40 font-light">
-              Serás redirigido en unos segundos...
+
+            {/* Email Icon and Message */}
+            <div className="bg-info/10 border border-info/20 rounded-lg p-6 mb-6">
+              <Mail className="h-12 w-12 text-info mx-auto mb-4" />
+              <p className="text-base-content/80 font-light mb-2">
+                Hemos enviado un correo de verificación a:
+              </p>
+              <p className="text-lg font-medium text-primary mb-4">
+                {registeredEmail}
+              </p>
+              <p className="text-sm text-base-content/60 font-light">
+                Por favor, revisa tu bandeja de entrada y{" "}
+                <span className="font-semibold">carpeta de spam</span> y haz clic en el
+                enlace de verificación para activar tu cuenta.
+              </p>
+            </div>
+
+            {/* Resend Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="btn btn-outline btn-info w-full mb-3"
+              onClick={handleResendVerification}
+              disabled={isResending}
+            >
+              {isResending ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4" />
+                  Reenviar Email de Verificación
+                </>
+              )}
+            </motion.button>
+
+            {/* Resend Message */}
+            {resendMessage && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`text-sm mb-4 ${
+                  resendMessage.startsWith("✓") ? "text-success" : "text-error"
+                }`}
+              >
+                {resendMessage}
+              </motion.p>
+            )}
+
+            {/* Go to Login Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="btn btn-primary w-full"
+              onClick={() => setLocation("/login")}
+            >
+              Ir al Login
+            </motion.button>
+
+            {/* Note */}
+            <p className="text-xs text-base-content/40 font-light mt-6">
+              Nota: Debes verificar tu email antes de poder iniciar sesión
             </p>
           </div>
         </motion.div>
       </div>
     );
   }
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePassword = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center px-4 py-12">
@@ -131,7 +232,6 @@ export default function Register() {
               </motion.div>
             )}
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Username Input */}
               <motion.div
@@ -218,17 +318,26 @@ export default function Register() {
                     Contraseña
                   </span>
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="••••••••"
-                  className="input input-bordered w-full font-light bg-base-200 focus:outline-none focus:border-primary transition-colors"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  minLength={6}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="••••••••"
+                    className="input input-bordered w-full font-light bg-base-200 focus:outline-none focus:border-primary transition-colors pr-12"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    minLength={6}
+                  />
+                  <button 
+                    className="btn btn-ghost btn-circle btn-xs absolute right-2 top-1/2 -translate-y-1/2" 
+                    type="button" 
+                    onClick={togglePassword}
+                  >
+                    {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                </div>
                 <label className="label">
                   <span className="label-text-alt text-base-content/60 font-light">
                     Mínimo 6 caracteres

@@ -33,7 +33,7 @@ function App() {
   const [location] = useLocation();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const hideNavbar =
-    location === "/email-verification" || location.startsWith("/admin");
+    location === "/verify-email" || location.startsWith("/admin");
 
   useEffect(() => {
     const preloadData = async () => {
@@ -98,7 +98,7 @@ function App() {
             <Route path="/carrito" component={Carrito} />
             <Route path="/contact-us" component={ContactUs} />
             <Route path="/my-purchases" component={MyPurchases} />
-            <Route path="/email-verification" component={EmailVerification} />
+            <Route path="/verify-email" component={EmailVerification} />
             <Route path="/order-tracking/:orderId" component={OrderTracking} />
             <Route path="/checkout" component={CheckOut} />
             <Route path="'/newProducto" component={AdminNewProduct} />

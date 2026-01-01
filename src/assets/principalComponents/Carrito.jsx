@@ -212,11 +212,7 @@ export default function Carrito() {
                             </p>
                           </div>
                         )}
-                        {item.stock_available !== undefined && (
-                          <p className="text-sm text-base-content/60 mt-1">
-                            Stock disponible: {item.stock_available}
-                          </p>
-                        )}
+                        
                       </div>
 
                       {/* Quantity Controls */}
