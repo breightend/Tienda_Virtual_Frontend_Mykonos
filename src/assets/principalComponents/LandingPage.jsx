@@ -139,6 +139,7 @@ export default function LandingPage() {
           marginTop: "-64px",
           scrollSnapType: "y proximity",
           overflowY: "scroll",
+          overflowX: "hidden",
           height: "100vh"
         }}
       >

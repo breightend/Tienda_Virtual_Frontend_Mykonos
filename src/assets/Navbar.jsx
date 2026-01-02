@@ -108,11 +108,16 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex-1">
           <a
-            className="btn btn-ghost text-2xl md:text-3xl font-light tracking-widest text-base-content"
+            className="btn btn-ghost text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light tracking-widest text-base-content gap-2 hover:bg-transparent"
             onClick={goHome}
           >
-          <img src="logoMks.svg" alt="" className="h-10 w-10 "/>
-            MYKONOS BOUTIQUE
+            <img 
+              src="/logoMks.svg" 
+              alt="Mykonos Logo" 
+              className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 object-contain"
+            />
+            <span className="hidden sm:inline">MYKONOS BOUTIQUE</span>
+            <span className="inline sm:hidden">MYKONOS</span>
           </a>
         </div>
 

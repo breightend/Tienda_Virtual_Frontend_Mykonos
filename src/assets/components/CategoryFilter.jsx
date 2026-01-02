@@ -21,8 +21,8 @@ export default function CategoryFilter({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState(new Set());
-  const [seeCategory, setSeeCategory] = useState(true);
-  const [seeBranches, setSeeBranches] = useState(true);
+  const [seeCategory, setSeeCategory] = useState(false);
+  const [seeBranches, setSeeBranches] = useState(false);
 
   const handleSeeCategory = () => {
     setSeeCategory(!seeCategory);

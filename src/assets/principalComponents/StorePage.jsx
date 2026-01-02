@@ -252,13 +252,6 @@ export default function StorePage() {
       return;
     }
 
-    console.log("Adding to cart - Product validation passed:", {
-      id: product.id,
-      name: product.nombre_web,
-      price: price,
-      variants: product.variantes.length,
-      firstVariant: product.variantes[0],
-    });
 
     if (product.variantes.length === 1) {
       const variantId = product.variantes[0].variant_id;
@@ -340,11 +333,7 @@ export default function StorePage() {
       }
     }
 
-    console.log("Adding to cart:", {
-      productId: selectedProduct.id,
-      quantity: quantity,
-      variantId: variantId,
-    });
+
 
     try {
       setAddingToCart(true);
