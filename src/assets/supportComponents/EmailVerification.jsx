@@ -27,7 +27,7 @@ export default function EmailVerification() {
 
     const verifyEmail = async (token) => {
         try {
-            const response = await fetch(`${API_URL}/api/users/verify-email`, {
+            const response = await fetch(`${API_URL}/auth/verify-email`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export default function EmailVerification() {
 
         setIsResending(true);
         try {
-            const response = await fetch(`${API_URL}/api/users/resend-verification`, {
+            const response = await fetch(`${API_URL}/auth/resend-verification`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
