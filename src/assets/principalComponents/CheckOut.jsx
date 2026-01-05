@@ -12,15 +12,15 @@ import {
   ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import * as purchaseService from "../services/purchaseService";
 
 export default function CheckOut() {
   const [location, setLocation] = useLocation();
-  const { cart } = useCart();
+  const { cart, refreshCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Step 1: Delivery/Pickup data
-  const [deliveryType, setDeliveryType] = useState("delivery"); // delivery o pickup
+  const [deliveryType, setDeliveryType] = useState("delivery"); 
   const [deliveryAddress, setDeliveryAddress] = useState({
     street: "",
     number: "",
@@ -29,11 +29,11 @@ export default function CheckOut() {
     postalCode: "",
     additionalInfo: "",
   });
-  const [selectedBranch, setSelectedBranch] = useState(""); // parana o concordia
+  const [selectedBranch, setSelectedBranch] = useState(""); 
 
-  // Step 2: Payment and Invoice data
-  const [paymentMethod, setPaymentMethod] = useState(""); // transferencia, efectivo, mercadopago
-  const [invoiceType, setInvoiceType] = useState(""); // factura_a, factura_b, ticket
+
+  const [paymentMethod, setPaymentMethod] = useState(""); 
+  const [invoiceType, setInvoiceType] = useState(""); 
   const [fiscalData, setFiscalData] = useState({
     cuit: "",
     businessName: "",
@@ -162,27 +162,63 @@ export default function CheckOut() {
 
     setProcessing(true);
 
-    // Aquí iría la llamada al backend para crear la orden
-    const orderData = {
-      delivery_type: deliveryType,
-      delivery_address: deliveryType === "delivery" ? deliveryAddress : null,
-      pickup_branch: deliveryType === "pickup" ? selectedBranch : null,
-      payment_method: paymentMethod,
-      invoice_type: invoiceType,
-      fiscal_data: invoiceType === "factura_a" ? fiscalData : null,
-      order_notes: orderNotes,
-      cart_items: cart.items,
-      subtotal: cart.subtotal,
-    };
+    try {
+      // Construir la dirección de envío como un string único
+      let shippingAddress = "";
+      
+      if (deliveryType === "delivery") {
+        // Para envío a domicilio, crear dirección completa
+        shippingAddress = `${deliveryAddress.street} ${deliveryAddress.number}, ${deliveryAddress.city}, ${deliveryAddress.province}`;
+        if (deliveryAddress.postalCode) {
+          shippingAddress += `, CP: ${deliveryAddress.postalCode}`;
+        }
+        if (deliveryAddress.additionalInfo) {
+          shippingAddress += ` - ${deliveryAddress.additionalInfo}`;
+        }
+      } else {
+        // Para retiro en sucursal, usar la dirección de la sucursal
+        const branch = branches.find((b) => b.id === selectedBranch);
+        shippingAddress = branch ? `Retiro en ${branch.name} - ${branch.address}` : "Retiro en sucursal";
+      }
 
-    console.log("Order data:", orderData);
+      // Calcular costo de envío
+      const shippingCost = deliveryType === "pickup" ? 0 : 0; // Se puede agregar lógica de cálculo aquí
 
-    // Simular creación de orden
-    setTimeout(() => {
+      // Preparar datos según el formato del backend
+      const orderData = {
+        shipping_address: shippingAddress,
+        delivery_type: deliveryType === "delivery" ? "envio" : "retiro",
+        shipping_cost: shippingCost,
+        notes: orderNotes || undefined,
+        payment_method: paymentMethod || undefined,
+      };
+
+      console.log("Creating order with data:", orderData);
+
+      // Llamar al servicio de creación de pedido
+      const result = await purchaseService.createOrderFromCart(orderData);
+
+      console.log("Order created successfully:", result);
+
+      // Mostrar mensaje de éxito
+      toast.success("¡Pedido creado exitosamente! Ahora completa el pago.");
+
+      // Refrescar el carrito (debería estar vacío ahora si el backend lo vacía)
+      await refreshCart();
+
+      // Redirigir a la página de confirmación de pago
+      setTimeout(() => {
+        setLocation(`/payment/${result.order_id}`);
+      }, 1000);
+    } catch (error) {
+      console.error("Error creating order:", error);
+      
+      // Mostrar error específico del backend
+      const errorMessage = error.detail || error.message || "Error al crear el pedido. Por favor intenta nuevamente.";
+      toast.error(errorMessage);
+    } finally {
       setProcessing(false);
-      toast.success("¡Orden creada exitosamente!");
-      setLocation("/my-purchases");
-    }, 2000);
+    }
   };
 
   const steps = [
@@ -807,7 +843,7 @@ export default function CheckOut() {
                   <div className="flex justify-between text-sm">
                     <span className="text-base-content/60">Envío</span>
                     <span className="text-success">
-                      {deliveryType === "pickup" ? "Gratis" : "A coordinar"}
+                      {deliveryType === "pickup" ? "Gratis" : "$0 (A coordinar)"}
                     </span>
                   </div>
                 </div>

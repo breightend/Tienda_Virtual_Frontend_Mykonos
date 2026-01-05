@@ -59,12 +59,12 @@ export default function OrderTracking() {
 
   const getTrackingSteps = () => {
     const status = order?.shipping_status || "pendiente";
-    
+
     // If we have detailed tracking history, use that
     if (order?.tracking_history && order.tracking_history.length > 0) {
       return order.tracking_history.map((history, index) => ({
         id: history.id,
-        title: history.status,
+        title: getStatusTitle(history.status),
         description: history.description || "Actualización de estado",
         location: history.location,
         timestamp: history.created_at,
@@ -74,54 +74,112 @@ export default function OrderTracking() {
         active: index === order.tracking_history.length - 1,
       }));
     }
-    
+
     // Fallback to default steps if no tracking history
     const steps = [
       {
         id: 1,
-        title: "Preparando Pedido",
-        description: "Tu pedido está siendo preparado",
-        icon: "📦",
+        title: "Pedido Recibido",
+        description: "Tu pedido ha sido recibido y está siendo procesado",
+        icon: "📝",
         status: "pendiente",
       },
       {
         id: 2,
-        title: order?.origin === "web" ? "En Camino" : "Listo para Retiro",
-        description: order?.origin === "web" 
-          ? "El transporte ha retirado tu pedido" 
-          : "Tu pedido está listo en la sucursal",
-        icon: order?.origin === "web" ? "🚚" : "🏪",
-        status: "enviado",
+        title: "Preparando Pedido",
+        description: "Estamos preparando tu pedido",
+        icon: "📦",
+        status: "preparando",
       },
       {
         id: 3,
-        title: order?.origin === "web" ? "Entregado" : "Retirado",
-        description: order?.origin === "web"
-          ? "Tu pedido ha sido entregado"
-          : "Has retirado tu pedido",
-        icon: "✅",
-        status: "entregado",
+        title:
+          order?.delivery_type === "envio" ? "Despachado" : "Listo para Retiro",
+        description:
+          order?.delivery_type === "envio"
+            ? "Tu pedido ha sido despachado"
+            : "Tu pedido está listo para retiro en sucursal",
+        icon: order?.delivery_type === "envio" ? "🚚" : "🏪",
+        status: "despachado",
       },
     ];
 
+    // Add "en_transito" step only for shipments
+    if (order?.delivery_type === "envio") {
+      steps.push({
+        id: 4,
+        title: "En Tránsito",
+        description: "Tu pedido está en camino",
+        icon: "🛣️",
+        status: "en_transito",
+      });
+    }
+
+    // Add final step
+    steps.push({
+      id: steps.length + 1,
+      title: order?.delivery_type === "envio" ? "Entregado" : "Retirado",
+      description:
+        order?.delivery_type === "envio"
+          ? "Tu pedido ha sido entregado"
+          : "Has retirado tu pedido",
+      icon: "✅",
+      status: "entregado",
+    });
+
     // Determine which steps are completed
-    const statusOrder = ["pendiente", "enviado", "entregado"];
+    const statusOrder = [
+      "pendiente",
+      "preparando",
+      "despachado",
+      "en_transito",
+      "entregado",
+    ];
     const currentIndex = statusOrder.indexOf(status);
 
     return steps.map((step, index) => ({
       ...step,
-      completed: index <= currentIndex,
-      active: index === currentIndex,
+      completed: statusOrder.indexOf(step.status) <= currentIndex,
+      active: step.status === status,
     }));
+  };
+
+  const getStatusTitle = (status) => {
+    const statusTitles = {
+      pendiente: "Pedido Recibido",
+      preparando: "Preparando Pedido",
+      despachado: "Despachado",
+      en_transito: "En Tránsito",
+      entregado: "Entregado",
+      cancelado: "Cancelado",
+    };
+    return statusTitles[status.toLowerCase()] || status;
   };
 
   const getIconForStatus = (status) => {
     const statusLower = status.toLowerCase();
-    if (statusLower.includes("preparando") || statusLower.includes("pendiente")) return "📦";
-    if (statusLower.includes("empaquetado") || statusLower.includes("empacado")) return "📦";
-    if (statusLower.includes("despachado") || statusLower.includes("enviado") || statusLower.includes("camino")) return "🚚";
-    if (statusLower.includes("listo") || statusLower.includes("retiro")) return "🏪";
-    if (statusLower.includes("entregado") || statusLower.includes("retirado") || statusLower.includes("completado")) return "✅";
+    if (statusLower.includes("pendiente")) return "📝";
+    if (
+      statusLower.includes("preparando") ||
+      statusLower.includes("empaquetado") ||
+      statusLower.includes("empacado")
+    )
+      return "📦";
+    if (statusLower.includes("despachado")) return "🚀";
+    if (
+      statusLower.includes("enviado") ||
+      statusLower.includes("camino") ||
+      statusLower.includes("transito")
+    )
+      return "🚚";
+    if (statusLower.includes("listo") || statusLower.includes("retiro"))
+      return "🏪";
+    if (
+      statusLower.includes("entregado") ||
+      statusLower.includes("retirado") ||
+      statusLower.includes("completado")
+    )
+      return "✅";
     if (statusLower.includes("cancelado")) return "❌";
     return "📍";
   };
@@ -163,7 +221,8 @@ export default function OrderTracking() {
   }
 
   const trackingSteps = getTrackingSteps();
-  const hasDetailedHistory = order?.tracking_history && order.tracking_history.length > 0;
+  const hasDetailedHistory =
+    order?.tracking_history && order.tracking_history.length > 0;
 
   return (
     <div className="min-h-screen bg-base-200 py-12 px-4">
@@ -215,7 +274,9 @@ export default function OrderTracking() {
                         step.completed
                           ? "bg-primary text-primary-content"
                           : "bg-base-300 text-base-content/40"
-                      } ${step.active ? "ring-4 ring-primary ring-opacity-30" : ""}`}
+                      } ${
+                        step.active ? "ring-4 ring-primary ring-opacity-30" : ""
+                      }`}
                     >
                       {step.icon}
                     </motion.div>
@@ -238,19 +299,23 @@ export default function OrderTracking() {
                   >
                     <h3
                       className={`text-lg font-light ${
-                        step.completed ? "text-base-content" : "text-base-content/40"
+                        step.completed
+                          ? "text-base-content"
+                          : "text-base-content/40"
                       }`}
                     >
                       {step.title}
                     </h3>
                     <p
                       className={`text-sm font-light ${
-                        step.completed ? "text-base-content/60" : "text-base-content/30"
+                        step.completed
+                          ? "text-base-content/60"
+                          : "text-base-content/30"
                       }`}
                     >
                       {step.description}
                     </p>
-                    
+
                     {/* Additional details for tracking history */}
                     {hasDetailedHistory && (
                       <>
@@ -271,7 +336,7 @@ export default function OrderTracking() {
                         )}
                       </>
                     )}
-                    
+
                     {step.active && !hasDetailedHistory && (
                       <span className="badge badge-primary badge-sm mt-2">
                         Estado Actual
@@ -308,7 +373,9 @@ export default function OrderTracking() {
                     <p className="text-sm text-base-content/60 font-light">
                       Costo de Envío:
                     </p>
-                    <p className="font-light">{formatPrice(order.shipping_cost)}</p>
+                    <p className="font-light">
+                      {formatPrice(order.shipping_cost)}
+                    </p>
                   </div>
                 )}
               </div>
@@ -324,9 +391,7 @@ export default function OrderTracking() {
           className="card bg-base-100 shadow-xl mb-6"
         >
           <div className="card-body">
-            <h2 className="text-xl font-light tracking-wide mb-4">
-              Productos
-            </h2>
+            <h2 className="text-xl font-light tracking-wide mb-4">Productos</h2>
             <div className="space-y-3">
               {order.items.map((item) => (
                 <div
@@ -350,11 +415,18 @@ export default function OrderTracking() {
                     <h4 className="font-light">{item.product_name}</h4>
                     <div className="flex gap-2 text-sm text-base-content/60 font-light mt-1">
                       {item.size_name && <span>Talle: {item.size_name}</span>}
-                      {item.color_name && <span>• Color: {item.color_name}</span>}
+                      {item.color_name && (
+                        <span>• Color: {item.color_name}</span>
+                      )}
                     </div>
                     <p className="text-sm text-base-content/60 font-light mt-1">
                       Cantidad: {item.quantity}
                     </p>
+                    {item.variant_barcode && (
+                      <p className="text-xs text-base-content/40 font-mono font-light mt-1">
+                        Código: {item.variant_barcode}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="font-light">{formatPrice(item.total)}</p>

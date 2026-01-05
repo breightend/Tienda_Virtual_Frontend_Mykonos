@@ -968,200 +968,176 @@ export default function StorePage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Carousel Container */}
-                <div className="relative w-full h-[60vh] md:h-[70vh] overflow-hidden bg-base-200 group">
-                  {/* Main Image */}
-                  <motion.img
-                    key={currentImageIndex}
-                    src={getImageUrl(
-                      selectedCard.images[currentImageIndex] ||
-                        selectedCard.images[0]
+                <div className="flex flex-col md:flex-row h-auto md:h-[85vh] max-h-[90vh]">
+                  {/* Left Side - Image Gallery with Hover Effect */}
+                  <div className="w-full md:w-1/2 relative bg-base-200 flex items-center justify-center p-4 md:p-8">
+                    {/* Conditional: Use hover-gallery only for multiple images */}
+                    {selectedCard.images && selectedCard.images.length > 1 ? (
+                      /* DaisyUI Hover Gallery - For 2-10 images */
+                      <figure className="hover-gallery relative w-full h-[50vh] md:h-full max-h-[600px] md:max-h-full rounded-lg overflow-hidden shadow-xl">
+                        {selectedCard.images.slice(0, 10).map((img, idx) => (
+                          <img
+                            key={idx}
+                            src={getImageUrl(img)}
+                            alt={`${selectedCard.nombre_web} - ${idx + 1}`}
+                            className="w-full h-full object-contain"
+                          />
+                        ))}
+                      </figure>
+                    ) : (
+                      /* Single Image - No hover effect */
+                      <figure className="relative w-full h-[50vh] md:h-full max-h-[600px] md:max-h-full rounded-lg overflow-hidden shadow-xl">
+                        <img
+                          src={getImageUrl(selectedCard.images[0])}
+                          alt={selectedCard.nombre_web}
+                          className="w-full h-full object-contain"
+                        />
+                      </figure>
                     )}
-                    alt={`${selectedCard.nombre_web} - Imagen ${
-                      currentImageIndex + 1
-                    }`}
-                    className="w-full h-full object-contain"
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
-                    transition={{ duration: 0.3 }}
-                  />
-
-                  {/* Navigation Arrows - Only show if multiple images */}
-                  {selectedCard.images && selectedCard.images.length > 1 && (
-                    <>
-                      <button
-                        onClick={(e) => previousImage(selectedCard, e)}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 btn btn-circle btn-sm bg-base-100/80 hover:bg-base-100 border-none opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Imagen anterior"
-                      >
-                        ❮
-                      </button>
-                      <button
-                        onClick={(e) => nextImage(selectedCard, e)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 btn btn-circle btn-sm bg-base-100/80 hover:bg-base-100 border-none opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Siguiente imagen"
-                      >
-                        ❯
-                      </button>
-
-                      {/* Image Counter */}
-                      <div className="absolute top-4 right-4 bg-base-100/80 px-3 py-1 rounded-full text-sm">
-                        {currentImageIndex + 1} / {selectedCard.images.length}
-                      </div>
-
-                      {/* Thumbnails with Pagination */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-base-100/80 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                        {/* Previous Page Button */}
-                        {selectedCard.images.length > THUMBNAILS_PER_PAGE && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (canGoToPrevPage()) {
-                                setThumbnailPage(thumbnailPage - 1);
-                              }
-                            }}
-                            disabled={!canGoToPrevPage()}
-                            className="btn btn-circle btn-xs bg-base-200 hover:bg-base-300 border-none disabled:opacity-30"
-                            aria-label="Página anterior de miniaturas"
-                          >
-                            ‹
-                          </button>
-                        )}
-
-                        {/* Thumbnails */}
-                        <div className="flex gap-2">
-                          {getPaginatedThumbnails(selectedCard.images).map(
-                            (img, idx) => {
-                              const actualIndex =
-                                thumbnailPage * THUMBNAILS_PER_PAGE + idx;
-                              return (
-                                <button
-                                  key={actualIndex}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCurrentImageIndex(actualIndex);
-                                  }}
-                                  className={`w-16 h-16 flex-shrink-0 rounded overflow-hidden border-2 transition-all ${
-                                    actualIndex === currentImageIndex
-                                      ? "border-primary scale-110"
-                                      : "border-transparent opacity-60 hover:opacity-100"
-                                  }`}
-                                >
-                                  <img
-                                    src={getImageUrl(img)}
-                                    alt={`Thumbnail ${actualIndex + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </button>
-                              );
-                            }
-                          )}
+                    
+                    {/* Discount Badge - Outside figure to avoid interference */}
+                    {selectedCard.discount_percentage > 0 && (
+                      <div className="absolute top-8 right-8 z-20 pointer-events-none">
+                        <div className="badge badge-error badge-lg gap-1 shadow-lg">
+                          <span className="text-lg font-bold">
+                            {selectedCard.discount_percentage}%
+                          </span>
+                          <span className="text-xs">OFF</span>
                         </div>
-
-                        {/* Next Page Button */}
-                        {selectedCard.images.length > THUMBNAILS_PER_PAGE && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (canGoToNextPage(selectedCard.images)) {
-                                setThumbnailPage(thumbnailPage + 1);
-                              }
-                            }}
-                            disabled={!canGoToNextPage(selectedCard.images)}
-                            className="btn btn-circle btn-xs bg-base-200 hover:bg-base-300 border-none disabled:opacity-30"
-                            aria-label="Página siguiente de miniaturas"
-                          >
-                            ›
-                          </button>
-                        )}
-
-                        {/* Page Indicator */}
-                        {selectedCard.images.length > THUMBNAILS_PER_PAGE && (
-                          <div className="ml-2 text-xs opacity-70">
-                            {thumbnailPage + 1}/
-                            {getTotalPages(selectedCard.images)}
-                          </div>
-                        )}
                       </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Scrollable Content */}
-                <div className="p-6 md:p-8">
-                  <h2 className="text-3xl font-light text-base-content tracking-wide mb-2">
-                    {selectedCard.nombre_web}
-                  </h2>
-                  <p className="text-2xl text-primary font-light mb-6">
-                    $
-                    {(
-                      selectedCard.precio_web ||
-                      selectedCard.sale_price ||
-                      0
-                    ).toFixed(2)}
-                  </p>
-                  <div className="w-12 h-px bg-primary/30 mb-6"></div>
-                  <p className="text-lg text-base-content/80 leading-relaxed mb-8">
-                    {selectedCard.descripcion_web}
-                  </p>
-
-                  {/* Variant Details */}
-                  {selectedCard.variantes &&
-                    selectedCard.variantes.length > 0 && (
+                    )}
+                    
+                    {/* Image Counter - Only show for multiple images */}
+                    {selectedCard.images && selectedCard.images.length > 1 && (
+                      <div className="absolute bottom-8 right-8 bg-base-100/90 px-3 py-1.5 rounded-full text-sm font-light z-20 backdrop-blur-sm pointer-events-none">
+                        {selectedCard.images.length > 10 
+                          ? `10 de ${selectedCard.images.length} imágenes` 
+                          : `${selectedCard.images.length} imágenes`}
+                      </div>
+                    )}
+                    
+                    {/* Info hint for hover - Only show for multiple images */}
+                    {selectedCard.images && selectedCard.images.length > 1 && (
+                      <div className="absolute top-8 left-8 bg-base-100/90 px-3 py-1.5 rounded-lg text-xs font-light z-20 backdrop-blur-sm pointer-events-none opacity-70">
+                        <span className="hidden md:block">← Mueve el mouse →</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Right Side - Product Information */}
+                  <div className="w-full md:w-1/2 overflow-y-auto p-6 md:p-8 lg:p-10 bg-base-100">
+                    <div className="max-w-xl mx-auto">
+                      <h2 className="text-3xl md:text-4xl font-light text-base-content tracking-wide mb-3">
+                        {selectedCard.nombre_web}
+                      </h2>
+                      
+                      {/* Price Section */}
+                      {selectedCard.discount_percentage > 0 ? (
+                        <div className="mb-6">
+                          <p className="text-base-content/50 font-light text-lg line-through mb-1">
+                            ${(selectedCard.precio_web || selectedCard.sale_price || 0).toFixed(2)}
+                          </p>
+                          <p className="text-error font-semibold text-3xl md:text-4xl">
+                            ${(
+                              (selectedCard.precio_web || selectedCard.sale_price || 0) *
+                              (1 - selectedCard.discount_percentage / 100)
+                            ).toFixed(2)}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-primary font-light text-3xl md:text-4xl mb-6">
+                          ${(selectedCard.precio_web || selectedCard.sale_price || 0).toFixed(2)}
+                        </p>
+                      )}
+                      
+                      <div className="w-16 h-px bg-primary/30 mb-6"></div>
+                      
+                      {/* Description */}
+                      <p className="text-base md:text-lg text-base-content/80 leading-relaxed mb-8 font-light">
+                        {selectedCard.descripcion_web || "Sin descripción disponible"}
+                      </p>
+                      
+                      {/* Stock Information */}
                       <div className="mb-6">
-                        <h3 className="text-sm font-light tracking-wide text-base-content/60 mb-3">
-                          VARIANTES DISPONIBLES
-                        </h3>
-                        <div className="grid grid-cols-1 gap-2">
-                          {selectedCard.variantes.map((variant) => (
-                            <div
-                              key={variant.variant_id}
-                              className="flex items-center justify-between p-3 bg-base-200 rounded-lg"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className="w-8 h-8 rounded-full border-2 border-base-content/20"
-                                  style={{ backgroundColor: variant.color_hex }}
-                                ></div>
-                                <div>
-                                  <p className="font-light">
-                                    {variant.color} - Talle {variant.talle}
-                                  </p>
-                                  <p className="text-xs text-base-content/60">
-                                    Stock: {variant.stock} unidades
-                                  </p>
-                                </div>
-                              </div>
-                              {variant.stock === 0 && (
-                                <span className="badge badge-error badge-sm">
-                                  Sin stock
-                                </span>
-                              )}
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-light tracking-wide text-base-content/60">
+                            DISPONIBILIDAD:
+                          </span>
+                          <span
+                            className={`badge ${
+                              selectedCard.stock_disponible > 0
+                                ? "badge-success"
+                                : "badge-error"
+                            }`}
+                          >
+                            {selectedCard.stock_disponible > 0
+                              ? `${selectedCard.stock_disponible} unidades disponibles`
+                              : "Sin stock"}
+                          </span>
                         </div>
                       </div>
-                    )}
-
-                  <div className="flex flex-col sm:flex-row gap-3 justify-between items-center mt-8 pt-6 border-t border-base-300">
-                    <button
-                      className="btn btn-ghost font-light tracking-wide w-full sm:w-auto"
-                      onClick={() => setSelectedCard(null)}
-                    >
-                      CERRAR
-                    </button>
-                    <button
-                      className="btn btn-primary btn-lg font-light tracking-wide px-8 gap-2 w-full sm:w-auto"
-                      disabled={selectedCard.stock_disponible === 0}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedCard(null);
-                        handleAddToCartClick(selectedCard, null);
-                      }}
-                    >
-                      <ShoppingCart size={20} />
-                      AGREGAR AL CARRITO
-                    </button>
+                      
+                      {/* Variant Details */}
+                      {selectedCard.variantes && selectedCard.variantes.length > 0 && (
+                        <div className="mb-6">
+                          <h3 className="text-sm font-light tracking-widest text-base-content/60 mb-4">
+                            VARIANTES DISPONIBLES
+                          </h3>
+                          <div className="grid grid-cols-1 gap-3">
+                            {selectedCard.variantes.map((variant) => (
+                              <div
+                                key={variant.variant_id}
+                                className="flex items-center justify-between p-4 bg-base-200/50 rounded-lg hover:bg-base-200 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className="w-10 h-10 rounded-full border-2 border-base-content/20 flex-shrink-0"
+                                    style={{ backgroundColor: variant.color_hex }}
+                                  ></div>
+                                  <div>
+                                    <p className="font-light text-base">
+                                      {variant.color} - Talle {variant.talle}
+                                    </p>
+                                    <p className="text-xs text-base-content/60">
+                                      Stock: {variant.stock} unidades
+                                    </p>
+                                  </div>
+                                </div>
+                                {variant.stock === 0 && (
+                                  <span className="badge badge-error badge-sm">
+                                    Sin stock
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Action Buttons */}
+                      <div className="flex flex-col gap-3 mt-8 pt-6 border-t border-base-300">
+                        <button
+                          className="btn btn-primary btn-lg font-light tracking-wide w-full gap-2"
+                          disabled={selectedCard.stock_disponible === 0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCard(null);
+                            handleAddToCartClick(selectedCard, null);
+                          }}
+                        >
+                          <ShoppingCart size={20} />
+                          {selectedCard.stock_disponible === 0
+                            ? "SIN STOCK"
+                            : "AGREGAR AL CARRITO"}
+                        </button>
+                        <button
+                          className="btn btn-ghost font-light tracking-wide w-full"
+                          onClick={() => setSelectedCard(null)}
+                        >
+                          CERRAR
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </motion.div>

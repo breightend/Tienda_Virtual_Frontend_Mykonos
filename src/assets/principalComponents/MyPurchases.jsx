@@ -64,10 +64,29 @@ export default function MyPurchases() {
   const getShippingStatusBadge = (status) => {
     const statusConfig = {
       pendiente: "badge-warning",
-      enviado: "badge-info",
+      preparando: "badge-info",
+      despachado: "badge-primary",
+      en_transito: "badge-info",
       entregado: "badge-success",
+      cancelado: "badge-error",
     };
     return statusConfig[status] || "badge-ghost";
+  };
+
+  const getShippingStatusLabel = (status) => {
+    const statusLabels = {
+      pendiente: "Pendiente",
+      preparando: "Preparando",
+      despachado: "Despachado",
+      en_transito: "En Tránsito",
+      entregado: "Entregado",
+      cancelado: "Cancelado",
+    };
+    return statusLabels[status] || status;
+  };
+
+  const getDeliveryTypeLabel = (deliveryType) => {
+    return deliveryType === "envio" ? "🚚 Envío" : "🏪 Retiro";
   };
 
   if (isLoading) {
@@ -173,7 +192,9 @@ export default function MyPurchases() {
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <span
-                      className={`badge ${getStatusBadge(purchase.status)} font-light`}
+                      className={`badge ${getStatusBadge(
+                        purchase.status
+                      )} font-light`}
                     >
                       {purchase.status}
                     </span>
@@ -183,7 +204,12 @@ export default function MyPurchases() {
                           purchase.shipping_status
                         )} font-light`}
                       >
-                        Envío: {purchase.shipping_status}
+                        {getShippingStatusLabel(purchase.shipping_status)}
+                      </span>
+                    )}
+                    {purchase.delivery_type && (
+                      <span className="badge badge-ghost font-light">
+                        {getDeliveryTypeLabel(purchase.delivery_type)}
                       </span>
                     )}
                   </div>
@@ -227,6 +253,11 @@ export default function MyPurchases() {
                         <p className="text-sm text-base-content/60 font-light mt-1">
                           Cantidad: {item.quantity}
                         </p>
+                        {item.variant_barcode && (
+                          <p className="text-xs text-base-content/40 font-mono font-light mt-1">
+                            Código: {item.variant_barcode}
+                          </p>
+                        )}
                       </div>
 
                       {/* Price */}
@@ -301,7 +332,9 @@ export default function MyPurchases() {
                 <div className="mt-4">
                   <motion.button
                     className="btn btn-primary btn-sm w-full sm:w-auto"
-                    onClick={() => setLocation(`/order-tracking/${purchase.id}`)}
+                    onClick={() =>
+                      setLocation(`/order-tracking/${purchase.id}`)
+                    }
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >

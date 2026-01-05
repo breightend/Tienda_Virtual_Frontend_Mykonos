@@ -15,6 +15,7 @@ import { CartProvider } from "./assets/context/CartContext.jsx";
 import MyPurchases from "./assets/principalComponents/MyPurchases.jsx";
 import EmailVerification from "./assets/supportComponents/EmailVerification.jsx";
 import OrderTracking from "./assets/principalComponents/OrderTracking.jsx";
+import PaymentConfirmation from "./assets/principalComponents/PaymentConfirmation.jsx";
 import ProtectedRoute from "./assets/components/ProtectedRoute.jsx";
 import AdminDashboard from "./assets/AdminComponents/AdminDashboard.jsx";
 import AdminProductList from "./assets/AdminComponents/AdminProductList.jsx";
@@ -39,8 +40,8 @@ function App() {
     const preloadData = async () => {
       try {
         // Verificar si ya se mostró el loader en esta sesión
-        const hasShownLoader = sessionStorage.getItem('hasShownInitialLoader');
-        
+        const hasShownLoader = sessionStorage.getItem("hasShownInitialLoader");
+
         if (hasShownLoader) {
           // Si ya se mostró, no mostrar el loader y cargar inmediatamente
           setIsInitialLoading(false);
@@ -55,9 +56,9 @@ function App() {
         });
 
         await Promise.all([minLoadTime, productsPromise]);
-        
+
         // Marcar que ya se mostró el loader
-        sessionStorage.setItem('hasShownInitialLoader', 'true');
+        sessionStorage.setItem("hasShownInitialLoader", "true");
       } catch (error) {
         console.error("Error en precarga:", error);
       } finally {
@@ -112,6 +113,7 @@ function App() {
             <Route path="/my-purchases" component={MyPurchases} />
             <Route path="/verify-email" component={EmailVerification} />
             <Route path="/order-tracking/:orderId" component={OrderTracking} />
+            <Route path="/payment/:orderId" component={PaymentConfirmation} />
             <Route path="/checkout" component={CheckOut} />
             <Route path="'/newProducto" component={AdminNewProduct} />
 
