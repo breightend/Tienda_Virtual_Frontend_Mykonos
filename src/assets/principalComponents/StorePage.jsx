@@ -9,7 +9,7 @@ import CategoryFilter from "../components/CategoryFilter";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLocation } from "wouter";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function StorePage() {
@@ -34,6 +34,7 @@ export default function StorePage() {
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   const modalRef = useRef(null);
 
@@ -381,92 +382,113 @@ export default function StorePage() {
         </div>
 
         {/* Main Content - Full Width with Filters Flush Left */}
-        <div className="flex md:flex-row flex-col gap-24 pl-2 pr-2">
-          {/* Left Sidebar - Filters (Flush Left) */}
-          <div className="w-48 flex-shrink-0">
-            <div className="md:sticky top-24">
-              <CategoryFilter
-                onSelectCategory={setSelectedCategory}
-                selectedCategory={selectedCategory}
-                onSelectBranch={setSelectedBranch}
-                selectedBranch={selectedBranch}
-              />
+        <div className="flex md:flex-row flex-col gap-6 pl-2 pr-2 relative">
+          {/* Toggle Filter Button - Only visible on desktop */}
+          <motion.button
+            onClick={() => setShowFilters(!showFilters)}
+            className="hidden md:flex fixed left-4 top-32 z-30 btn btn-circle btn-sm btn-primary shadow-lg"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title={showFilters ? "Ocultar filtros" : "Mostrar filtros"}
+          >
+            {showFilters ? <ChevronLeft size={18} /> : <Filter size={18} />}
+          </motion.button>
 
-              {/* Active Filters Display */}
-              {(selectedCategory || selectedBranch) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-base-200 rounded-lg space-y-3"
-                >
-                  {selectedCategory && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold">
-                          Categoría:
-                        </span>
-                        <button
-                          onClick={() => setSelectedCategory(null)}
-                          className="btn btn-ghost btn-xs btn-circle"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      <span className="badge badge-primary badge-sm">
-                        {selectedCategory.group_name}
-                      </span>
-                    </div>
-                  )}
+          {/* Left Sidebar - Filters (Collapsible) */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: "12rem", opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex-shrink-0 overflow-hidden"
+              >
+                <div className="md:sticky top-24 w-48">
+                  <CategoryFilter
+                    onSelectCategory={setSelectedCategory}
+                    selectedCategory={selectedCategory}
+                    onSelectBranch={setSelectedBranch}
+                    selectedBranch={selectedBranch}
+                  />
 
-                  {selectedBranch && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold">Sucursal:</span>
-                        <button
-                          onClick={() => setSelectedBranch(null)}
-                          className="btn btn-ghost btn-xs btn-circle"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      <span className="badge badge-secondary badge-sm">
-                        {selectedBranch.name}
-                      </span>
-                    </div>
+                  {/* Active Filters Display */}
+                  {(selectedCategory || selectedBranch) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-4 p-4 bg-base-200 rounded-lg space-y-3"
+                    >
+                      {selectedCategory && (
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold">
+                              Categoría:
+                            </span>
+                            <button
+                              onClick={() => setSelectedCategory(null)}
+                              className="btn btn-ghost btn-xs btn-circle"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                          <span className="badge badge-primary badge-sm">
+                            {selectedCategory.group_name}
+                          </span>
+                        </div>
+                      )}
+
+                      {selectedBranch && (
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold">Sucursal:</span>
+                            <button
+                              onClick={() => setSelectedBranch(null)}
+                              className="btn btn-ghost btn-xs btn-circle"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                          <span className="badge badge-secondary badge-sm">
+                            {selectedBranch.name}
+                          </span>
+                        </div>
+                      )}
+                    </motion.div>
                   )}
-                </motion.div>
-              )}
-            </div>
-          </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Right Content - Products */}
-          <div className="flex-1 ">
+          <div className="flex-1">
             {/* Loading State */}
             {loading && (
               <div className="flex flex-col justify-center items-center min-h-[400px] gap-8">
