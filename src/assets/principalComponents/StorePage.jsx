@@ -35,6 +35,11 @@ export default function StorePage() {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
+  
+  // Mobile carousel state
+  const [mobileImageIndex, setMobileImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   const modalRef = useRef(null);
 
@@ -63,6 +68,41 @@ export default function StorePage() {
     setThumbnailPage(0);
     setSelectedCard(product);
   };
+
+  // Mobile touch handlers for image swipe
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && mobileImageIndex < (selectedCard?.images?.length || 0) - 1) {
+      setMobileImageIndex(prev => prev + 1);
+    }
+    if (isRightSwipe && mobileImageIndex > 0) {
+      setMobileImageIndex(prev => prev - 1);
+    }
+    
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  // Reset mobile image index when modal opens/closes
+  useEffect(() => {
+    if (selectedCard) {
+      setMobileImageIndex(0);
+    }
+  }, [selectedCard]);
+
 
   const getPaginatedThumbnails = (images) => {
     const startIdx = thumbnailPage * THUMBNAILS_PER_PAGE;
@@ -994,31 +1034,67 @@ export default function StorePage() {
               >
                 {/* Carousel Container */}
                 <div className="flex flex-col md:flex-row h-auto md:h-[85vh] max-h-[90vh]">
-                  {/* Left Side - Image Gallery with Hover Effect */}
+                  {/* Left Side - Image Gallery */}
                   <div className="w-full md:w-1/2 relative bg-base-200 flex items-center justify-center p-4 md:p-8">
-                    {/* Conditional: Use hover-gallery only for multiple images */}
-                    {selectedCard.images && selectedCard.images.length > 1 ? (
-                      /* DaisyUI Hover Gallery - For 2-10 images */
-                      <figure className="hover-gallery relative w-full h-[50vh] md:h-full max-h-[600px] md:max-h-full rounded-lg overflow-hidden shadow-xl">
-                        {selectedCard.images.slice(0, 10).map((img, idx) => (
+                    {/* Desktop: Hover Gallery */}
+                    <div className="hidden md:block w-full h-full">
+                      {selectedCard.images && selectedCard.images.length > 1 ? (
+                        /* DaisyUI Hover Gallery - For 2-10 images */
+                        <figure className="hover-gallery relative w-full h-full rounded-lg overflow-hidden shadow-xl">
+                          {selectedCard.images.slice(0, 10).map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={getImageUrl(img)}
+                              alt={`${selectedCard.nombre_web} - ${idx + 1}`}
+                              className="w-full h-full object-contain"
+                            />
+                          ))}
+                        </figure>
+                      ) : (
+                        /* Single Image */
+                        <figure className="relative w-full h-full rounded-lg overflow-hidden shadow-xl">
                           <img
-                            key={idx}
-                            src={getImageUrl(img)}
-                            alt={`${selectedCard.nombre_web} - ${idx + 1}`}
+                            src={getImageUrl(selectedCard.images[0])}
+                            alt={selectedCard.nombre_web}
                             className="w-full h-full object-contain"
                           />
-                        ))}
-                      </figure>
-                    ) : (
-                      /* Single Image - No hover effect */
-                      <figure className="relative w-full h-[50vh] md:h-full max-h-[600px] md:max-h-full rounded-lg overflow-hidden shadow-xl">
+                        </figure>
+                      )}
+                    </div>
+
+                    {/* Mobile: Swipeable Carousel */}
+                    <div 
+                      className="md:hidden w-full h-[50vh] relative"
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                    >
+                      <div className="relative w-full h-full rounded-lg overflow-hidden shadow-xl bg-base-300">
                         <img
-                          src={getImageUrl(selectedCard.images[0])}
-                          alt={selectedCard.nombre_web}
+                          src={getImageUrl(selectedCard.images[mobileImageIndex] || selectedCard.images[0])}
+                          alt={`${selectedCard.nombre_web} - ${mobileImageIndex + 1}`}
                           className="w-full h-full object-contain"
                         />
-                      </figure>
-                    )}
+                      </div>
+                      
+                      {/* Pagination Dots - Only for multiple images */}
+                      {selectedCard.images && selectedCard.images.length > 1 && (
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                          {selectedCard.images.slice(0, 10).map((_, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setMobileImageIndex(idx)}
+                              className={`w-2 h-2 rounded-full transition-all ${
+                                idx === mobileImageIndex 
+                                  ? 'bg-primary w-6' 
+                                  : 'bg-base-content/30'
+                              }`}
+                              aria-label={`Ver imagen ${idx + 1}`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     
                     {/* Discount Badge - Outside figure to avoid interference */}
                     {selectedCard.discount_percentage > 0 && (
@@ -1032,19 +1108,19 @@ export default function StorePage() {
                       </div>
                     )}
                     
-                    {/* Image Counter - Only show for multiple images */}
+                    {/* Image Counter - Only show for multiple images on desktop */}
                     {selectedCard.images && selectedCard.images.length > 1 && (
-                      <div className="absolute bottom-8 right-8 bg-base-100/90 px-3 py-1.5 rounded-full text-sm font-light z-20 backdrop-blur-sm pointer-events-none">
+                      <div className="absolute bottom-8 right-8 bg-base-100/90 px-3 py-1.5 rounded-full text-sm font-light z-20 backdrop-blur-sm pointer-events-none hidden md:block">
                         {selectedCard.images.length > 10 
                           ? `10 de ${selectedCard.images.length} imágenes` 
                           : `${selectedCard.images.length} imágenes`}
                       </div>
                     )}
                     
-                    {/* Info hint for hover - Only show for multiple images */}
+                    {/* Info hint for hover - Desktop only */}
                     {selectedCard.images && selectedCard.images.length > 1 && (
-                      <div className="absolute top-8 left-8 bg-base-100/90 px-3 py-1.5 rounded-lg text-xs font-light z-20 backdrop-blur-sm pointer-events-none opacity-70">
-                        <span className="hidden md:block">← Mueve el mouse →</span>
+                      <div className="absolute top-8 left-8 bg-base-100/90 px-3 py-1.5 rounded-lg text-xs font-light z-20 backdrop-blur-sm pointer-events-none opacity-70 hidden md:block">
+                        ← Mueve el mouse →
                       </div>
                     )}
                   </div>
