@@ -11,16 +11,105 @@ import {
   Percent,
   Store,
   DollarSign,
+  GripVertical,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import AdminLayout from "./AdminLayout";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   uploadProductImage,
   deleteProductImage,
   updateProductWithVariants,
   toggleProductOnline,
+  reorderProductImages,
+  getProductImages,
 } from "../services/productService";
 import { getProductDetailsByVariantByBranch } from "../services/branchService";
+
+// Sortable Image Component
+function SortableImage({ id, image, index, onRemove }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const getImageUrl = (img) => {
+    if (typeof img === 'string') {
+      return img.startsWith("http")
+        ? img
+        : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${img}`;
+    }
+    return img.image_url?.startsWith("http")
+      ? img.image_url
+      : `${import.meta.env.VITE_API_URL || "http://localhost:8000"}${img.image_url || img}`;
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative group ${isDragging ? "z-50 scale-105" : ""} transition-transform`}
+    >
+      {/* Drag handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-2 z-10 bg-base-100/90 p-1 rounded cursor-move opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-content"
+      >
+        <GripVertical size={16} />
+      </div>
+
+      {/* Order badge */}
+      <div className="absolute top-2 right-10 badge badge-sm badge-primary z-10">
+        {index + 1}
+      </div>
+
+      <img
+        src={getImageUrl(image)}
+        alt={`Product ${index + 1}`}
+        className="w-full h-40 object-cover rounded-lg"
+      />
+
+      {/* Delete button */}
+      <button
+        onClick={onRemove}
+        className="absolute top-2 right-2 btn btn-xs btn-circle btn-error opacity-0 group-hover:opacity-100 transition-opacity z-10"
+      >
+        <X size={14} />
+      </button>
+
+      {/* Principal badge */}
+      {index === 0 && (
+        <div className="absolute bottom-2 left-2 badge badge-sm badge-success">
+          Principal
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EditProduct({ product, onClose, onProductUpdated }) {
   const [formData, setFormData] = useState({
@@ -39,6 +128,17 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
   const [variantsByBranch, setVariantsByBranch] = useState([]);
   const [enTiendaOnline, setEnTiendaOnline] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [reorderingImages, setReorderingImages] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState(null);
+
+  // DnD Kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   useEffect(() => {
     if (product) {
@@ -52,14 +152,45 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
         descuento: product.discount_percentage || "",
         start_date: product.discount_start_date || "",
         end_date: product.discount_end_date || "",
-      });
+      })
       setEnTiendaOnline(product.en_tienda_online !== false);
-      setExistingImages(product.images || []);
       setUploadedImages([]);
 
+      // Load images from dedicated endpoint to get proper structure with IDs
+      loadProductImages();
       loadVariants();
     }
   }, [product]);
+
+  // Load product images with proper structure (id, image_url, orden)
+  const loadProductImages = async () => {
+    if (!product) return;
+
+    try {
+      console.log(`📸 Loading images for product ${product.id}...`);
+      const images = await getProductImages(product.id);
+      console.log('📸 Images from API:', images);
+      setExistingImages(images || []);
+    } catch (error) {
+      console.error('Error loading product images:', error);
+      // Fallback to product.images if endpoint fails
+      if (product.images) {
+        console.log('📸 Falling back to product.images');
+        const normalizedImages = product.images.map((img, idx) => {
+          if (typeof img === 'string') {
+            return {
+              id: `temp-${idx}`,
+              image_url: img,
+              orden: idx,
+              _isTemp: true,
+            };
+          }
+          return img;
+        });
+        setExistingImages(normalizedImages);
+      }
+    }
+  };
 
   const loadVariants = async () => {
     if (!product) return;
@@ -148,9 +279,74 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Remove existing image
-  const removeExistingImage = (index) => {
-    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+  // Remove existing image - now deletes immediately
+  const removeExistingImage = (imageIndex) => {
+    const image = existingImages[imageIndex];
+    
+    // Validate image has real ID
+    if (!image || !image.id || image._isTemp) {
+      toast.error("Esta imagen no se ha guardado aún. Guarda los cambios primero.");
+      return;
+    }
+
+    // Open confirmation modal
+    setImageToDelete({ image, index: imageIndex });
+    document.getElementById('delete_image_modal').showModal();
+  };
+
+  // Confirm and delete image
+  const confirmDeleteImage = async () => {
+    if (!imageToDelete) return;
+
+    try {
+      console.log('🗑️ Deleting image:', imageToDelete.image.id, 'from product:', product.id);
+      await deleteProductImage(product.id, imageToDelete.image.id);
+      setExistingImages((prev) => prev.filter((_, i) => i !== imageToDelete.index));
+      toast.success("Imagen eliminada");
+      document.getElementById('delete_image_modal').close();
+      setImageToDelete(null);
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast.error(error.response?.data?.detail || "Error al eliminar imagen");
+    }
+  };
+
+  // Handle drag end for reordering images
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = existingImages.findIndex((img) => `image-${img.id}` === active.id);
+    const newIndex = existingImages.findIndex((img) => `image-${img.id}` === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newOrder = arrayMove(existingImages, oldIndex, newIndex);
+
+    // Update local state immediately for better UX
+    setExistingImages(newOrder);
+
+    try {
+      setReorderingImages(true);
+
+      // Send new order to backend
+      const reorderData = newOrder.map((img, index) => ({
+        image_id: img.id,
+        orden: index,
+      }));
+
+      await reorderProductImages(product.id, reorderData);
+      toast.success("Orden actualizado");
+    } catch (error) {
+      console.error("Error reordering images:", error);
+      toast.error("Error al reordenar imágenes");
+
+      // Revert on error
+      setExistingImages(product.images || []);
+    } finally {
+      setReorderingImages(false);
+    }
   };
 
   // Update web stock for a variant in a branch
@@ -217,11 +413,22 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
         toast.success(`${uploadedImageResults.length} imágenes subidas`);
       }
 
-      const currentImageIds = existingImages.map((img) => img.id);
-      const originalImageIds = product.images?.map((img) => img.id) || [];
+      // Step 2: Delete removed images (only those with valid IDs)
+      const currentImageIds = existingImages
+        .filter(img => img.id && typeof img.id === 'number' && !img._isTemp)
+        .map((img) => img.id);
+      
+      const originalImageIds = product.images
+        ?.filter(img => typeof img === 'object' && img.id)
+        .map((img) => img.id) || [];
+      
       const imagesToDelete = originalImageIds.filter(
         (id) => !currentImageIds.includes(id)
       );
+
+      console.log('🗑️ Images to delete:', imagesToDelete);
+      console.log('📸 Current image IDs:', currentImageIds);
+      console.log('📸 Original image IDs:', originalImageIds);
 
       const deletePromises = imagesToDelete.map((imageId) =>
         deleteProductImage(product.id, imageId)
@@ -311,7 +518,10 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
       }
     } catch (error) {
       console.error("Error updating product:", error);
-      toast.error(error.detail || "Error al actualizar producto");
+      const errorMessage = typeof error.detail === 'string' 
+        ? error.detail 
+        : error.response?.data?.detail || error.message || "Error al actualizar producto";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -423,39 +633,52 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Images */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Existing Images */}
+            {/* Existing Images with Drag and Drop */}
             <div className="card bg-base-100 shadow-lg">
               <div className="card-body">
-                <h2 className="card-title text-lg">Imágenes del producto</h2>
+                <h2 className="card-title text-lg flex items-center justify-between">
+                  <span>Imágenes del producto</span>
+                  {existingImages.length > 1 && (
+                    <span className="badge badge-sm badge-ghost">
+                      Arrastra para reordenar
+                    </span>
+                  )}
+                </h2>
+
                 {existingImages.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    {existingImages.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={
-                            image.startsWith("http")
-                              ? image
-                              : `${
-                                  import.meta.env.VITE_API_URL ||
-                                  "http://localhost:8000"
-                                }${image}`
-                          }
-                          alt={`Product ${index + 1}`}
-                          className="w-full h-40 object-cover rounded-lg"
-                        />
-                        <button
-                          onClick={() => removeExistingImage(index)}
-                          className="absolute top-2 right-2 btn btn-xs btn-circle btn-error opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={14} />
-                        </button>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={existingImages.map((img) => `image-${img.id}`)}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        {existingImages.map((image, index) => (
+                          <SortableImage
+                            key={`image-${image.id}`}
+                            id={`image-${image.id}`}
+                            image={image}
+                            index={index}
+                            onRemove={() => removeExistingImage(index)}
+                          />
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+                  </DndContext>
                 ) : (
                   <p className="text-base-content/60 text-sm text-center py-4">
                     No hay imágenes
                   </p>
+                )}
+
+                {reorderingImages && (
+                  <div className="alert alert-info mt-2">
+                    <span className="loading loading-spinner loading-sm"></span>
+                    <span>Actualizando orden...</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -1043,6 +1266,35 @@ export default function EditProduct({ product, onClose, onProductUpdated }) {
             </form>
           </div>
         </div>
+      </dialog>
+
+      {/* Delete Image Confirmation Modal */}
+      <dialog id="delete_image_modal" className="modal">
+        <div className="modal-box w-80 max-w-md">
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <Trash2 size={20} className="text-error" />
+            Eliminar imagen
+          </h3>
+          <p className="py-4">
+            ¿Estás seguro de que deseas eliminar esta imagen? Esta acción no se puede deshacer.
+          </p>
+          <div className="modal-action">
+            <form method="dialog" className="flex gap-2">
+              <button className="btn btn-ghost">Cancelar</button>
+              <button
+                type="button"
+                onClick={confirmDeleteImage}
+                className="btn btn-error"
+              >
+                <Trash2 size={16} />
+                Eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
       </dialog>
     </AdminLayout>
   );

@@ -324,22 +324,23 @@ const addProductImage = async (productId, imageUrl) => {
 
 /**
  * Delete product image - Admin only
+ * @param {number} productId - Product ID
  * @param {number} imageId - Image ID
  * @returns {Promise<void>}
  */
-const deleteProductImage = async (imageId) => {
+const deleteProductImage = async (productId, imageId) => {
   try {
     const token = getAuthToken();
     if (!token) throw new Error("Authentication required");
 
     await axios.delete(
-      `${API_URL.replace("/products", "")}/products/images/${imageId}`,
+      `${API_URL}/${productId}/images/${imageId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
   } catch (error) {
-    console.error(`Error deleting image ${imageId}:`, error);
+    console.error(`Error deleting image ${imageId} from product ${productId}:`, error);
     throw error.response?.data || error;
   }
 };
@@ -348,9 +349,10 @@ const deleteProductImage = async (imageId) => {
  * Upload image for product (base64) - Admin only
  * @param {number} productId - Product ID
  * @param {File} file - Image file
- * @returns {Promise<Object>} Image data with id and URL
+ * @param {number|null} orden - Optional order for the image (0 = first)
+ * @returns {Promise<Object>} Image data with id, URL, and orden
  */
-const uploadProductImage = async (productId, file) => {
+const uploadProductImage = async (productId, file, orden = null) => {
   try {
     const token = getAuthToken();
     if (!token) throw new Error("Authentication required");
@@ -363,12 +365,19 @@ const uploadProductImage = async (productId, file) => {
       reader.readAsDataURL(file);
     });
 
+    const requestBody = {
+      image_data: base64,
+      filename: file.name,
+    };
+
+    // Only include orden if specified
+    if (orden !== null && orden !== undefined) {
+      requestBody.orden = orden;
+    }
+
     const response = await axios.post(
       `${API_URL}/${productId}/images`,
-      {
-        image_data: base64,
-        filename: file.name,
-      },
+      requestBody,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -381,9 +390,34 @@ const uploadProductImage = async (productId, file) => {
 };
 
 /**
+ * Reorder product images - Admin only
+ * @param {number} productId - Product ID
+ * @param {Array} images - Array of {image_id, orden} objects
+ * @returns {Promise<Object>} Result with message and updated_count
+ */
+const reorderProductImages = async (productId, images) => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const response = await axios.patch(
+      `${API_URL}/${productId}/images/reorder`,
+      { images },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error reordering images for product ${productId}:`, error);
+    throw error.response?.data || error;
+  }
+};
+
+/**
  * Get all images for a product
  * @param {number} productId - Product ID
- * @returns {Promise<Array>} Array of image objects
+ * @returns {Promise<Array>} Array of image objects with id, image_url, and orden
  */
 const getProductImages = async (productId) => {
   try {
@@ -493,6 +527,7 @@ export {
   addProductImage,
   uploadProductImage,
   deleteProductImage,
+  reorderProductImages,
   getProductImages,
   getProductVariants,
   updateProductWithVariants,
