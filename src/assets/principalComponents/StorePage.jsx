@@ -1025,7 +1025,7 @@ export default function StorePage() {
               transition={{ duration: 0.2 }}
             >
               <motion.div
-                className="bg-base-100 w-full max-w-4xl shadow-2xl max-h-[95vh] overflow-y-auto rounded-lg"
+                className="bg-base-100 w-full max-w-4xl shadow-2xl rounded-lg max-h-[95vh] overflow-y-auto"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -1033,9 +1033,9 @@ export default function StorePage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Carousel Container */}
-                <div className="flex flex-col md:flex-row h-auto md:h-[85vh] max-h-[90vh]">
+                <div className="flex flex-col md:flex-row">
                   {/* Left Side - Image Gallery */}
-                  <div className="w-full md:w-1/2 relative bg-base-200 flex items-center justify-center p-4 md:p-8">
+                  <div className="w-full md:w-1/2 md:min-h-[600px] relative bg-base-200 flex items-center justify-center p-4 md:p-8">
                     {/* Desktop: Hover Gallery */}
                     <div className="hidden md:block w-full h-full">
                       {selectedCard.images && selectedCard.images.length > 1 ? (
