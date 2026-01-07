@@ -9,7 +9,7 @@ import CategoryFilter from "../components/CategoryFilter";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLocation } from "wouter";
-import { ShoppingCart, Filter, ChevronLeft, ChevronRight, ListFilter, ListFilterPlus } from "lucide-react";
+import { ShoppingCart, ListFilter, ListFilterPlus, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function StorePage() {
@@ -35,6 +35,7 @@ export default function StorePage() {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
+  const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
   
   // Mobile carousel state
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
@@ -420,9 +421,29 @@ export default function StorePage() {
               <div className="w-16 h-px bg-primary mx-auto"></div>
             </motion.div>
           </div>
+          
+          {/* Promotions Filter - Mobile */}
+          <div className="md:hidden flex justify-center mb-6">
+            <motion.button
+              onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}
+              className={`btn btn-sm gap-2 font-light tracking-wider ${
+                showPromotionsOnly 
+                  ? 'btn-primary shadow-lg' 
+                  : 'btn-ghost hover:btn-primary'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Tag className="h-4 w-4" />
+              PROMOCIONES
+              {showPromotionsOnly && (
+                <span className="badge badge-sm badge-secondary ml-1">ON</span>
+              )}
+            </motion.button>
+          </div>
 
-          {/* Toggle Filter Button - Desktop only */}
-          <div className="hidden md:flex justify-start mb-6">
+          {/* Filter Controls - Desktop only */}
+          <div className="hidden md:flex justify-between items-center mb-6">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="btn btn-sm btn-ghost gap-2 hover:btn-primary"
@@ -439,6 +460,24 @@ export default function StorePage() {
                 </>
               )}
             </button>
+            
+            {/* Promotions Filter Button */}
+            <motion.button
+              onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}
+              className={`btn btn-sm gap-2 font-light tracking-wider ${
+                showPromotionsOnly 
+                  ? 'btn-primary shadow-lg' 
+                  : 'btn-ghost hover:btn-primary'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Tag className="h-4 w-4" />
+              PROMOCIONES
+              {showPromotionsOnly && (
+                <span className="badge badge-sm badge-secondary ml-1">ON</span>
+              )}
+            </motion.button>
           </div>
 
           {/* Main Content - Full Width with Filters Flush Left */}
@@ -657,11 +696,27 @@ export default function StorePage() {
                 </p>
               </div>
             )}
+            
+            {/* No Promotions Message */}
+            {!loading && !error && products.length > 0 && showPromotionsOnly && 
+             products.filter(p => p.discount_percentage > 0).length === 0 && (
+              <div className="text-center py-16">
+                <Tag className="mx-auto h-16 w-16 text-base-content/30 mb-4" />
+                <p className="text-base-content/60 text-lg font-light mb-2">
+                  No hay promociones activas en este momento
+                </p>
+                <p className="text-base-content/40 text-sm font-light">
+                  Desactiva el filtro de promociones para ver todos los productos
+                </p>
+              </div>
+            )}
 
             {/* Products Grid */}
             {!loading && !error && products.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map((product, index) => {
+                {products
+                  .filter(product => !showPromotionsOnly || product.discount_percentage > 0)
+                  .map((product, index) => {
                   const uniqueColors = getUniqueColors(product.variantes);
                   const uniqueSizes = getUniqueSizes(product.variantes);
                   const hasValidPrice =
