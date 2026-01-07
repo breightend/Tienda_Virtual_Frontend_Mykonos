@@ -422,7 +422,7 @@ export default function StorePage() {
           </div>
 
           {/* Toggle Filter Button - Desktop only */}
-          <div className="hidden md:flex justify-end mb-6">
+          <div className="hidden md:flex justify-start mb-6">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="btn btn-sm btn-ghost gap-2 hover:btn-primary"
@@ -1025,7 +1025,7 @@ export default function StorePage() {
               transition={{ duration: 0.2 }}
             >
               <motion.div
-                className="bg-base-100 w-full max-w-4xl shadow-2xl rounded-lg max-h-[95vh] overflow-y-auto"
+                className="bg-base-100 w-full max-w-4xl shadow-2xl rounded-lg h-[90vh] overflow-hidden flex flex-col"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -1033,9 +1033,9 @@ export default function StorePage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Carousel Container */}
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col md:flex-row h-full">
                   {/* Left Side - Image Gallery */}
-                  <div className="w-full md:w-1/2 md:min-h-[600px] relative bg-base-200 flex items-center justify-center p-4 md:p-8">
+                  <div className="w-full md:w-1/2 h-[50vh] md:h-full relative bg-base-200 flex items-center justify-center p-4 md:p-8 flex-shrink-0">
                     {/* Desktop: Hover Gallery */}
                     <div className="hidden md:block w-full h-full">
                       {selectedCard.images && selectedCard.images.length > 1 ? (
@@ -1126,7 +1126,7 @@ export default function StorePage() {
                   </div>
                   
                   {/* Right Side - Product Information */}
-                  <div className="w-full md:w-1/2 overflow-y-auto p-6 md:p-8 lg:p-10 bg-base-100">
+                  <div className="w-full md:w-1/2 h-[50vh] md:h-full overflow-y-auto p-6 md:p-8 lg:p-10 bg-base-100 flex-shrink-0">
                     <div className="max-w-xl mx-auto">
                       <h2 className="text-3xl md:text-4xl font-light text-base-content tracking-wide mb-3">
                         {selectedCard.nombre_web}
