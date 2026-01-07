@@ -9,7 +9,7 @@ import CategoryFilter from "../components/CategoryFilter";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLocation } from "wouter";
-import { ShoppingCart, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingCart, Filter, ChevronLeft, ChevronRight, ListFilter, ListFilterPlus } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function StorePage() {
@@ -429,16 +429,12 @@ export default function StorePage() {
             >
               {showFilters ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                  </svg>
+                  <ListFilter className="h-4 w-4" />  
                   Ocultar Filtros
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                  </svg>
+                  <ListFilterPlus className="h-4 w-4" />
                   Mostrar Filtros
                 </>
               )}
