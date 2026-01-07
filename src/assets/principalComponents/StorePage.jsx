@@ -34,7 +34,7 @@ export default function StorePage() {
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
   
   // Mobile carousel state
@@ -423,62 +423,92 @@ export default function StorePage() {
           </div>
           
           {/* Promotions Filter - Mobile */}
-          <div className="md:hidden flex justify-center mb-6">
+          <motion.div 
+            className="md:hidden flex justify-center mb-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             <motion.button
               onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}
-              className={`btn btn-sm gap-2 font-light tracking-wider ${
+              className={`btn gap-2 font-light tracking-wider shadow-md ${
                 showPromotionsOnly 
                   ? 'btn-primary shadow-lg' 
-                  : 'btn-ghost hover:btn-primary'
+                  : 'btn-outline btn-primary hover:btn-primary'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Tag className="h-4 w-4" />
+              <Tag className="h-5 w-5" />
               PROMOCIONES
               {showPromotionsOnly && (
-                <span className="badge badge-sm badge-secondary ml-1">ON</span>
+                <motion.span 
+                  className="badge badge-sm badge-secondary ml-1"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                >
+                  ON
+                </motion.span>
               )}
             </motion.button>
-          </div>
+          </motion.div>
 
           {/* Filter Controls - Desktop only */}
-          <div className="hidden md:flex justify-between items-center mb-6">
-            <button
+          <motion.div 
+            className="hidden md:flex justify-between items-center mb-8  p-4 "
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.button
               onClick={() => setShowFilters(!showFilters)}
-              className="btn btn-sm btn-ghost gap-2 hover:btn-primary"
+              className={`btn gap-2 font-light tracking-wide ${
+                showFilters 
+                  ? ' btn-primary shadow-md ' 
+                  : 'btn-outline hover:btn-primary'
+              }`}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               {showFilters ? (
                 <>
-                  <ListFilter className="h-4 w-4" />  
+                  <ListFilter className="h-5 w-5" />  
                   Ocultar Filtros
                 </>
               ) : (
                 <>
-                  <ListFilterPlus className="h-4 w-4" />
+                  <ListFilterPlus className="h-5 w-5" />
                   Mostrar Filtros
                 </>
               )}
-            </button>
+            </motion.button>
             
             {/* Promotions Filter Button */}
             <motion.button
               onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}
-              className={`btn btn-sm gap-2 font-light tracking-wider ${
+              className={`btn gap-2 font-light tracking-wider ${
                 showPromotionsOnly 
                   ? 'btn-primary shadow-lg' 
-                  : 'btn-ghost hover:btn-primary'
+                  : 'btn-outline btn-primary hover:btn-primary'
               }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
-              <Tag className="h-4 w-4" />
+              <Tag className="h-5 w-5" />
               PROMOCIONES
               {showPromotionsOnly && (
-                <span className="badge badge-sm badge-secondary ml-1">ON</span>
+                <motion.span 
+                  className="badge badge-sm badge-secondary ml-1"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                >
+                  ON
+                </motion.span>
               )}
             </motion.button>
-          </div>
+          </motion.div>
 
           {/* Main Content - Full Width with Filters Flush Left */}
           <div className="flex md:flex-row flex-col gap-8">
