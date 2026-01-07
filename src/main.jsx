@@ -14,6 +14,7 @@ import { AuthProvider } from "./assets/context/AuthContext.jsx";
 import { CartProvider } from "./assets/context/CartContext.jsx";
 import MyPurchases from "./assets/principalComponents/MyPurchases.jsx";
 import EmailVerification from "./assets/supportComponents/EmailVerification.jsx";
+import AuthCallback from "./assets/principalComponents/AuthCallback.jsx";
 import OrderTracking from "./assets/principalComponents/OrderTracking.jsx";
 import PaymentConfirmation from "./assets/principalComponents/PaymentConfirmation.jsx";
 import ProtectedRoute from "./assets/components/ProtectedRoute.jsx";
@@ -112,6 +113,7 @@ function App() {
             <Route path="/contact-us" component={ContactUs} />
             <Route path="/my-purchases" component={MyPurchases} />
             <Route path="/verify-email" component={EmailVerification} />
+            <Route path="/auth/callback" component={AuthCallback} />
             <Route path="/order-tracking/:orderId" component={OrderTracking} />
             <Route path="/payment/:orderId" component={PaymentConfirmation} />
             <Route path="/checkout" component={CheckOut} />

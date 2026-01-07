@@ -263,22 +263,18 @@ export const isAdmin = () => {
   return user?.role === "admin";
 };
 
-// TODO: Google OAuth Login
-// Implement when Google OAuth is configured
-// export const loginWithGoogle = async (googleToken) => {
-//   try {
-//     const response = await axios.post(`${API_URL}/auth/google`, {
-//       token: googleToken
-//     });
-//     
-//     if (response.data.token) {
-//       setAuthToken(response.data.token);
-//       setUser(response.data.user);
-//     }
-//     
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error during Google login:", error);
-//     throw error.response?.data || error;
-//   }
-// };
+
+/**
+ * Get Google OAuth URL from backend
+ * @returns {Promise<string>} OAuth URL to redirect user to Google login
+ */
+export const getGoogleOAuthUrl = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/auth/google/login`);
+    return response.data.oauth_url;
+  } catch (error) {
+    console.error("Error getting Google OAuth URL:", error);
+    throw error.response?.data || error;
+  }
+};
+

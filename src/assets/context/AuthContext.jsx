@@ -168,9 +168,9 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateUser,
-    verifyEmail,
     resendVerification,
     setError, // Allow components to clear errors
+    setUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
