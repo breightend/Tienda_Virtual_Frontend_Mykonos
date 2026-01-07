@@ -45,6 +45,11 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
+  // Sync isAuthenticated with user state
+  useEffect(() => {
+    setIsAuthenticated(!!user);
+  }, [user]);
+
   /**
    * Register new user
    */
