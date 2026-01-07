@@ -499,7 +499,7 @@ export default function StorePage() {
               PROMOCIONES
               {showPromotionsOnly && (
                 <motion.span 
-                  className="badge badge-sm badge-secondary ml-1"
+                  className="badge badge-sm badge-accent ml-1 font-semibold"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
