@@ -232,7 +232,7 @@ export default function CheckOut() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-light tracking-widest mb-2">CHECKOUT</h1>
+          <h1 className="text-4xl font-light tracking-widest mb-2">FINALIZAR COMPRA</h1>
           <div className="w-16 h-px bg-primary"></div>
         </div>
 
@@ -409,7 +409,27 @@ export default function CheckOut() {
                               }
                             />
                           </div>
+                          
+                          <div>
+                            <label className="label">
+                              <span className="label-text">Información de contacto</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Ej: 3123456789"
+                              className="input input-bordered"
+                              value={deliveryAddress.phoneNumber}
+                              onChange={(e) =>
+                                setDeliveryAddress({
+                                  ...deliveryAddress,
+                                  phoneNumber: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
                         </div>
+
+
                         <div className="form-control">
                           <label className="label">
                             <span className="label-text ">
