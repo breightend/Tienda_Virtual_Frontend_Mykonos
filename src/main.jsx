@@ -30,6 +30,8 @@ import InitialLoader from "./assets/supportComponents/InitialLoader.jsx";
 import { useState, useEffect } from "react";
 import { fetchProducts } from "./assets/services/productService.js";
 import { AnimatePresence } from "motion/react";
+import Notifications from "./assets/components/Notifications.jsx";
+import { NotificationProvider } from "./assets/context/NotificationContext.jsx";
 
 function App() {
   const [location] = useLocation();
@@ -117,7 +119,8 @@ function App() {
             <Route path="/order-tracking/:orderId" component={OrderTracking} />
             <Route path="/payment/:orderId" component={PaymentConfirmation} />
             <Route path="/checkout" component={CheckOut} />
-            <Route path="'/newProducto" component={AdminNewProduct} />
+            <Route path="/newProducto" component={AdminNewProduct} />
+            <Route path="/notifications" component={Notifications} />
 
             {/* Admin Routes */}
             <Route path="/admin">
@@ -146,9 +149,11 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <CartProvider>
-        <Router>
-          <App />
-        </Router>
+        <NotificationProvider>
+            <Router>
+            <App />
+            </Router>
+        </NotificationProvider>
       </CartProvider>
     </AuthProvider>
   </StrictMode>

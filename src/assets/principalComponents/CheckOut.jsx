@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationContext";
 import { useLocation } from "wouter";
 import {
   MapPin,
@@ -18,6 +19,7 @@ export default function CheckOut() {
   const [location, setLocation] = useLocation();
   const { cart, refreshCart } = useCart();
   const { user, isAuthenticated } = useAuth();
+  const { addNotification } = useNotifications();
   const [currentStep, setCurrentStep] = useState(0);
 
   const [deliveryType, setDeliveryType] = useState("delivery"); 
@@ -202,6 +204,12 @@ export default function CheckOut() {
 
       // Mostrar mensaje de éxito
       toast.success("¡Pedido creado exitosamente! Ahora completa el pago.");
+
+      addNotification({
+        title: "Pedido Creado",
+        message: `Tu pedido #${result.order_id} ha sido creado exitosamente.`,
+        type: "success",
+      });
 
       // Refrescar el carrito (debería estar vacío ahora si el backend lo vacía)
       await refreshCart();

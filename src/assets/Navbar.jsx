@@ -1,4 +1,13 @@
-import { Moon, ShoppingCart, Sun, Menu, X, User, Shield } from "lucide-react";
+import {
+  Moon,
+  ShoppingCart,
+  Sun,
+  Menu,
+  X,
+  User,
+  Shield,
+  BellRing,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import {
@@ -9,10 +18,13 @@ import {
 } from "motion/react";
 import { useAuth } from "./context/AuthContext";
 import { useCart } from "./context/CartContext";
+import { useNotifications } from "./context/NotificationContext";
+import { Bell } from "lucide-react";
 
 export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount, totalPrice } = useCart();
+  const { unreadCount } = useNotifications();
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") || "lightMykonos"
   );
@@ -30,7 +42,7 @@ export default function Navbar() {
     const previous = scrollY.getPrevious();
     if (latest > previous && latest > 150) {
       setHidden(true);
-      setMobileMenuOpen(false); // Cerrar menú móvil al hacer scroll
+      setMobileMenuOpen(false);
     } else {
       setHidden(false);
     }
@@ -83,6 +95,11 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
+  const goToNotifications = () => {
+    setLocation("/notifications");
+    setMobileMenuOpen(false);
+  };
+
   const handleLogout = async () => {
     await logout();
     setLocation("/");
@@ -111,9 +128,9 @@ export default function Navbar() {
             className="btn btn-ghost text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light tracking-widest text-base-content gap-2 hover:bg-transparent"
             onClick={goHome}
           >
-            <img 
-              src="/logoMks.svg" 
-              alt="Mykonos Logo" 
+            <img
+              src="/logoMks.svg"
+              alt="Mykonos Logo"
               className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 object-contain"
             />
             <span className="hidden sm:inline">MYKONOS BOUTIQUE</span>
@@ -133,7 +150,6 @@ export default function Navbar() {
             <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
           </motion.button>
 
-
           <motion.button
             className="btn btn-ghost font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
             onClick={goToContactUs}
@@ -144,53 +160,82 @@ export default function Navbar() {
             <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
           </motion.button>
 
-          <div className="dropdown dropdown-end">
-              <motion.div
-                tabIndex={0}
-                role="button"
-                className="btn btn-ghost tooltip tooltip-bottom font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
-                data-tip="Carrito"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className="indicator">
-                  <ShoppingCart className="h-5 w-5" />
-                  {itemCount > 0 && (
-                    <span className="badge badge-sm indicator-item badge-primary">
-                      {itemCount}
+          {user && (
+            <motion.button
+              className="btn btn-ghost tooltip tooltip-bottom font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
+              onClick={goToNotifications}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              data-tip="Notificaciones"
+            >
+              <div className="indicator">
+                {unreadCount > 1 ? (
+                  <>
+                    <BellRing className="h-5 w-5 animate-pulse text-primary" />
+                    <span className="badge badge-xs badge-primary indicator-item animate-bounce">
+                      {unreadCount}
                     </span>
-                  )}
-                </div>
-                <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
-              </motion.div>
-              <div
-                tabIndex={0}
-                className="card card-compact dropdown-content bg-base-100 z-1 mt-3 w-52 shadow"
-              >
-                <div className="card-body">
-                  <span className="text-lg font-bold">
-                    {itemCount} {itemCount === 1 ? "Item" : "Items"}
+                  </>
+                ) : (
+                  <>
+                    <Bell className="h-5 w-5" />
+                  </>
+                )}
+              </div>
+              <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
+            </motion.button>
+          )}
+
+          <div className="dropdown dropdown-end">
+            <motion.div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost tooltip tooltip-bottom font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
+              data-tip="Carrito"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="indicator">
+                <ShoppingCart className="h-5 w-5" />
+                {itemCount > 0 && (
+                  <span className="badge badge-sm indicator-item badge-primary">
+                    {itemCount}
                   </span>
-                  <span className="text-info">
-                    Subtotal: ${totalPrice?.toLocaleString("es-AR") || 0}
-                  </span>
-                  <div className="card-actions">
-                    <button
-                      onClick={goToShoppingCart}
-                      className="btn btn-primary btn-block"
-                    >
-                      Ir al carrito
-                    </button>
-                  </div>
+                )}
+              </div>
+              <span className="absolute bottom-0 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full"></span>
+            </motion.div>
+            <div
+              tabIndex={0}
+              className="card card-compact dropdown-content bg-base-100 z-1 mt-3 w-52 shadow"
+            >
+              <div className="card-body">
+                <span className="text-lg font-bold">
+                  {itemCount} {itemCount === 1 ? "Item" : "Items"}
+                </span>
+                <span className="text-info">
+                  Subtotal: ${totalPrice?.toLocaleString("es-AR") || 0}
+                </span>
+                <div className="card-actions">
+                  <button
+                    onClick={goToShoppingCart}
+                    className="btn btn-primary btn-block"
+                  >
+                    Ir al carrito
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
 
           <motion.button
-            className="btn btn-ghost font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
-            onClick={() => setTheme(theme === "darkMykonos" ? "lightMykonos" : "darkMykonos")}
+            className="btn btn-ghost tooltip tooltip-bottom font-light tracking-widest text-base-content hover:text-primary transition-colors relative group"
+            onClick={() =>
+              setTheme(theme === "darkMykonos" ? "lightMykonos" : "darkMykonos")
+            }
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            data-tip="Cambiar tema"
           >
             {theme === "darkMykonos" ? (
               <Sun className="h-5 w-5" />
@@ -201,8 +246,6 @@ export default function Navbar() {
           </motion.button>
 
           <div className="flex gap-4">
-            
-
             {/* User Section */}
             <div className="dropdown dropdown-end">
               {isAuthenticated ? (
@@ -328,8 +371,29 @@ export default function Navbar() {
                 transition={{ delay: 0.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                TIENDA
+                Tienda
               </motion.button>
+
+              {user && (
+                <>
+                  <motion.div
+                    className="divider"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 0.15 }}
+                  ></motion.div>
+                  <motion.button
+                    className="btn btn-ghost btn-lg justify-start font-light tracking-widest text-base-content text-xl"
+                    onClick={goToNotifications}
+                    initial={{ x: 50, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Notificaciones
+                  </motion.button>
+                </>
+              )}
 
               <motion.div
                 className="divider"
@@ -337,8 +401,6 @@ export default function Navbar() {
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 0.15 }}
               ></motion.div>
-
-              
 
               <motion.button
                 className="btn btn-ghost btn-lg justify-start font-light tracking-widest text-base-content text-xl"
@@ -350,6 +412,13 @@ export default function Navbar() {
               >
                 Contactanos
               </motion.button>
+
+              <motion.div
+                className="divider"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.15 }}
+              ></motion.div>
 
               {/* Cart */}
               <motion.button
@@ -365,7 +434,8 @@ export default function Navbar() {
                   <div className="flex-1 text-left">
                     <p className="font-semibold">CARRITO</p>
                     <p className="text-sm text-base-content/70 font-normal">
-                      {itemCount} Items - ${totalPrice?.toLocaleString("es-AR") || 0}
+                      {itemCount} Items - $
+                      {totalPrice?.toLocaleString("es-AR") || 0}
                     </p>
                   </div>
                   {itemCount > 0 && (
