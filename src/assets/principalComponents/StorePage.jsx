@@ -9,7 +9,7 @@ import CategoryFilter from "../components/CategoryFilter";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLocation } from "wouter";
-import { ShoppingCart, ListFilter, ListFilterPlus, Tag } from "lucide-react";
+import { ShoppingCart, ListFilter, ListFilterPlus, Tag, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function StorePage() {
@@ -36,7 +36,7 @@ export default function StorePage() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showPromotionsOnly, setShowPromotionsOnly] = useState(false);
-  
+
   // Mobile carousel state
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
@@ -81,18 +81,21 @@ export default function StorePage() {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
-    if (isLeftSwipe && mobileImageIndex < (selectedCard?.images?.length || 0) - 1) {
-      setMobileImageIndex(prev => prev + 1);
+    if (
+      isLeftSwipe &&
+      mobileImageIndex < (selectedCard?.images?.length || 0) - 1
+    ) {
+      setMobileImageIndex((prev) => prev + 1);
     }
     if (isRightSwipe && mobileImageIndex > 0) {
-      setMobileImageIndex(prev => prev - 1);
+      setMobileImageIndex((prev) => prev - 1);
     }
-    
+
     setTouchStart(0);
     setTouchEnd(0);
   };
@@ -103,7 +106,6 @@ export default function StorePage() {
       setMobileImageIndex(0);
     }
   }, [selectedCard]);
-
 
   const getPaginatedThumbnails = (images) => {
     const startIdx = thumbnailPage * THUMBNAILS_PER_PAGE;
@@ -294,7 +296,6 @@ export default function StorePage() {
       return;
     }
 
-
     if (product.variantes.length === 1) {
       const variantId = product.variantes[0].variant_id;
       console.log("Single variant - Using variant_id:", variantId);
@@ -375,8 +376,6 @@ export default function StorePage() {
       }
     }
 
-
-
     try {
       setAddingToCart(true);
       const result = await addToCart(selectedProduct.id, quantity, variantId);
@@ -421,9 +420,9 @@ export default function StorePage() {
               <div className="w-16 h-px bg-primary mx-auto"></div>
             </motion.div>
           </div>
-          
+
           {/* Promotions Filter - Mobile */}
-          <motion.div 
+          <motion.div
             className="md:hidden flex justify-center mb-6"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -432,9 +431,9 @@ export default function StorePage() {
             <motion.button
               onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}
               className={`btn gap-2 font-light tracking-wider shadow-md ${
-                showPromotionsOnly 
-                  ? 'btn-primary shadow-lg' 
-                  : 'btn-outline btn-primary hover:btn-primary'
+                showPromotionsOnly
+                  ? "btn-primary shadow-lg"
+                  : "btn-outline btn-primary hover:btn-primary"
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -442,7 +441,7 @@ export default function StorePage() {
               <Tag className="h-5 w-5" />
               PROMOCIONES
               {showPromotionsOnly && (
-                <motion.span 
+                <motion.span
                   className="badge badge-sm badge-secondary ml-1"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -455,7 +454,7 @@ export default function StorePage() {
           </motion.div>
 
           {/* Filter Controls - Desktop only */}
-          <motion.div 
+          <motion.div
             className="hidden md:flex justify-between items-center mb-8  p-4 "
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -464,16 +463,16 @@ export default function StorePage() {
             <motion.button
               onClick={() => setShowFilters(!showFilters)}
               className={`btn gap-2 font-light tracking-wide ${
-                showFilters 
-                  ? ' btn-primary shadow-md ' 
-                  : 'btn-outline hover:btn-primary'
+                showFilters
+                  ? " btn-primary shadow-md "
+                  : "btn-outline hover:btn-primary"
               }`}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
               {showFilters ? (
                 <>
-                  <ListFilter className="h-5 w-5" />  
+                  <ListFilter className="h-5 w-5" />
                   Ocultar Filtros
                 </>
               ) : (
@@ -483,14 +482,14 @@ export default function StorePage() {
                 </>
               )}
             </motion.button>
-            
+
             {/* Promotions Filter Button */}
             <motion.button
               onClick={() => setShowPromotionsOnly(!showPromotionsOnly)}
               className={`btn gap-2 font-light tracking-wider ${
-                showPromotionsOnly 
-                  ? 'btn-primary shadow-lg' 
-                  : 'btn-outline btn-primary hover:btn-primary'
+                showPromotionsOnly
+                  ? "btn-primary shadow-lg"
+                  : "btn-outline btn-primary hover:btn-primary"
               }`}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -498,7 +497,7 @@ export default function StorePage() {
               <Tag className="h-5 w-5" />
               PROMOCIONES
               {showPromotionsOnly && (
-                <motion.span 
+                <motion.span
                   className="badge badge-sm badge-accent ml-1 font-semibold"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -515,438 +514,471 @@ export default function StorePage() {
             {/* Left Sidebar - Filters (Collapsible on desktop) */}
             {showFilters && (
               <div className="w-full md:w-64 md:flex-shrink-0">
-              <CategoryFilter
-                onSelectCategory={setSelectedCategory}
-                selectedCategory={selectedCategory}
-                onSelectBranch={setSelectedBranch}
-                selectedBranch={selectedBranch}
-              />
+                <CategoryFilter
+                  onSelectCategory={setSelectedCategory}
+                  selectedCategory={selectedCategory}
+                  onSelectBranch={setSelectedBranch}
+                  selectedBranch={selectedBranch}
+                />
 
-              {/* Active Filters Display */}
-              {(selectedCategory || selectedBranch) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-base-200 rounded-lg space-y-3"
-                >
-                  {selectedCategory && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold">
-                          Categoría:
+                {/* Active Filters Display */}
+                {(selectedCategory || selectedBranch) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 bg-base-200 rounded-lg space-y-3"
+                  >
+                    {selectedCategory && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold">
+                            Categoría:
+                          </span>
+                          <button
+                            onClick={() => setSelectedCategory(null)}
+                            className="btn btn-ghost btn-xs btn-circle"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                        <span className="badge badge-primary badge-sm">
+                          {selectedCategory.group_name}
                         </span>
-                        <button
-                          onClick={() => setSelectedCategory(null)}
-                          className="btn btn-ghost btn-xs btn-circle"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
                       </div>
-                      <span className="badge badge-primary badge-sm">
-                        {selectedCategory.group_name}
-                      </span>
-                    </div>
-                  )}
+                    )}
 
-                  {selectedBranch && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold">Sucursal:</span>
-                        <button
-                          onClick={() => setSelectedBranch(null)}
-                          className="btn btn-ghost btn-xs btn-circle"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                    {selectedBranch && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold">
+                            Sucursal:
+                          </span>
+                          <button
+                            onClick={() => setSelectedBranch(null)}
+                            className="btn btn-ghost btn-xs btn-circle"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                        <span className="badge badge-secondary badge-sm">
+                          {selectedBranch.name}
+                        </span>
                       </div>
-                      <span className="badge badge-secondary badge-sm">
-                        {selectedBranch.name}
-                      </span>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </div>
+                    )}
+                  </motion.div>
+                )}
+              </div>
             )}
 
             {/* Right Content - Products */}
             <div className="flex-1 min-w-0">
-            {/* Loading State */}
-            {loading && (
-              <div className="flex flex-col justify-center items-center min-h-[400px] gap-8">
-                {/* Animated SVG Logo */}
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-32 h-32"
-                >
+              {/* Loading State */}
+              {loading && (
+                <div className="flex flex-col justify-center items-center min-h-[400px] gap-8">
+                  {/* Animated SVG Logo */}
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-32 h-32"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 800 800"
+                      width="100%"
+                      height="100%"
+                    >
+                      {/* Cuadrado completo (superior izquierdo) - animado */}
+                      <motion.rect
+                        x="40"
+                        y="40"
+                        width="300"
+                        height="300"
+                        fill="none"
+                        stroke="#FF6B1A"
+                        strokeWidth="16"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        initial={{
+                          pathLength: 0,
+                          opacity: 0,
+                        }}
+                        animate={{
+                          pathLength: [0, 1, 1],
+                          opacity: [0, 1, 1],
+                        }}
+                        transition={{
+                          pathLength: {
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            times: [0, 0.5, 1],
+                          },
+                          opacity: {
+                            duration: 0.3,
+                            repeat: Infinity,
+                            repeatDelay: 1.7,
+                          },
+                        }}
+                      />
+
+                      {/* Cuadrado incompleto (forma en L) - animado con delay */}
+                      <motion.path
+                        d="M 90 390 L 90 760 L 760 760 L 760 90 L 380 90 L 380 390 Z"
+                        fill="none"
+                        stroke="#FF6B1A"
+                        strokeWidth="16"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        initial={{
+                          pathLength: 0,
+                          opacity: 0,
+                        }}
+                        animate={{
+                          pathLength: [0, 1, 1],
+                          opacity: [0, 1, 1],
+                        }}
+                        transition={{
+                          pathLength: {
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: 0.3,
+                            times: [0, 0.5, 1],
+                          },
+                          opacity: {
+                            duration: 0.3,
+                            repeat: Infinity,
+                            repeatDelay: 1.7,
+                            delay: 0.3,
+                          },
+                        }}
+                      />
+                    </svg>
+                  </motion.div>
+
+                  {/* Loading text */}
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="text-base-content/60 text-lg font-light tracking-wide"
+                  >
+                    Cargando productos...
+                  </motion.p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="alert alert-error">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 800 800"
-                    width="100%"
-                    height="100%"
+                    className="stroke-current shrink-0 h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
                   >
-                    {/* Cuadrado completo (superior izquierdo) - animado */}
-                    <motion.rect
-                      x="40"
-                      y="40"
-                      width="300"
-                      height="300"
-                      fill="none"
-                      stroke="#FF6B1A"
-                      strokeWidth="16"
+                    <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      initial={{
-                        pathLength: 0,
-                        opacity: 0,
-                      }}
-                      animate={{
-                        pathLength: [0, 1, 1],
-                        opacity: [0, 1, 1],
-                      }}
-                      transition={{
-                        pathLength: {
-                          duration: 1.5,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          times: [0, 0.5, 1],
-                        },
-                        opacity: {
-                          duration: 0.3,
-                          repeat: Infinity,
-                          repeatDelay: 1.7,
-                        },
-                      }}
-                    />
-
-                    {/* Cuadrado incompleto (forma en L) - animado con delay */}
-                    <motion.path
-                      d="M 90 390 L 90 760 L 760 760 L 760 90 L 380 90 L 380 390 Z"
-                      fill="none"
-                      stroke="#FF6B1A"
-                      strokeWidth="16"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      initial={{
-                        pathLength: 0,
-                        opacity: 0,
-                      }}
-                      animate={{
-                        pathLength: [0, 1, 1],
-                        opacity: [0, 1, 1],
-                      }}
-                      transition={{
-                        pathLength: {
-                          duration: 1.5,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: 0.3,
-                          times: [0, 0.5, 1],
-                        },
-                        opacity: {
-                          duration: 0.3,
-                          repeat: Infinity,
-                          repeatDelay: 1.7,
-                          delay: 0.3,
-                        },
-                      }}
+                      strokeWidth="2"
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                </motion.div>
+                  <span>{error}</span>
+                </div>
+              )}
 
-                {/* Loading text */}
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 0] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="text-base-content/60 text-lg font-light tracking-wide"
-                >
-                  Cargando productos...
-                </motion.p>
-              </div>
-            )}
+              {/* No Products Message */}
+              {!loading && !error && products.length === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-base-content/60 text-lg font-light">
+                    No se encontraron productos en esta categoría
+                  </p>
+                </div>
+              )}
 
-            {/* Error State */}
-            {error && (
-              <div className="alert alert-error">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="stroke-current shrink-0 h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span>{error}</span>
-              </div>
-            )}
+              {/* No Promotions Message */}
+              {!loading &&
+                !error &&
+                products.length > 0 &&
+                showPromotionsOnly &&
+                products.filter((p) => p.discount_percentage > 0).length ===
+                  0 && (
+                  <div className="text-center py-16">
+                    <Tag className="mx-auto h-16 w-16 text-base-content/30 mb-4" />
+                    <p className="text-base-content/60 text-lg font-light mb-2">
+                      No hay promociones activas en este momento
+                    </p>
+                    <p className="text-base-content/40 text-sm font-light">
+                      Desactiva el filtro de promociones para ver todos los
+                      productos
+                    </p>
+                  </div>
+                )}
 
-            {/* No Products Message */}
-            {!loading && !error && products.length === 0 && (
-              <div className="text-center py-16">
-                <p className="text-base-content/60 text-lg font-light">
-                  No se encontraron productos en esta categoría
-                </p>
-              </div>
-            )}
-            
-            {/* No Promotions Message */}
-            {!loading && !error && products.length > 0 && showPromotionsOnly && 
-             products.filter(p => p.discount_percentage > 0).length === 0 && (
-              <div className="text-center py-16">
-                <Tag className="mx-auto h-16 w-16 text-base-content/30 mb-4" />
-                <p className="text-base-content/60 text-lg font-light mb-2">
-                  No hay promociones activas en este momento
-                </p>
-                <p className="text-base-content/40 text-sm font-light">
-                  Desactiva el filtro de promociones para ver todos los productos
-                </p>
-              </div>
-            )}
+              {/* Products Grid */}
+              {!loading && !error && products.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {products
+                    .filter(
+                      (product) =>
+                        !showPromotionsOnly || product.discount_percentage > 0
+                    )
+                    .map((product, index) => {
+                      const uniqueColors = getUniqueColors(product.variantes);
+                      const uniqueSizes = getUniqueSizes(product.variantes);
+                      const hasValidPrice =
+                        product.precio_web || product.sale_price;
+                      const isAvailable =
+                        product.stock_disponible > 0 && hasValidPrice;
 
-            {/* Products Grid */}
-            {!loading && !error && products.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products
-                  .filter(product => !showPromotionsOnly || product.discount_percentage > 0)
-                  .map((product, index) => {
-                  const uniqueColors = getUniqueColors(product.variantes);
-                  const uniqueSizes = getUniqueSizes(product.variantes);
-                  const hasValidPrice =
-                    product.precio_web || product.sale_price;
-                  const isAvailable =
-                    product.stock_disponible > 0 && hasValidPrice;
+                      return (
+                        <motion.div
+                          key={product.id}
+                          onClick={() => handleCardClick(product)}
+                          className="card bg-base-200 shadow-lg hover:shadow-xl cursor-pointer group"
+                          initial={{ opacity: 0, y: 50 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: index * 0.1 }}
+                          whileHover={{ y: -8 }}
+                        >
+                          <figure className="relative overflow-hidden aspect-[3/4] group">
+                            {/* Image */}
+                            <img
+                              src={getImageUrl(product.images[0])}
+                              alt={product.nombre_web}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
 
-                  return (
-                    <motion.div
-                      key={product.id}
-                      onClick={() => handleCardClick(product)}
-                      className="card bg-base-200 shadow-lg hover:shadow-xl cursor-pointer group"
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      whileHover={{ y: -8 }}
-                    >
-                      <figure className="relative overflow-hidden aspect-[3/4] group">
-                        {/* Image */}
-                        <img
-                          src={getImageUrl(product.images[0])}
-                          alt={product.nombre_web}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-
-                        {/* Discount Badge */}
-                        {product.discount_percentage > 0 && (
-                          <div className="absolute top-2 right-2 z-10">
-                            <div className="badge badge-error badge-lg gap-1 shadow-lg">
-                              <span className="text-lg font-bold">
-                                {product.discount_percentage}%
-                              </span>
-                              <span className="text-xs">OFF</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Carousel indicators */}
-                        {product.images && product.images.length > 1 && (
-                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-                            {product.images.map((_, idx) => (
-                              <div
-                                key={idx}
-                                className="w-1.5 h-1.5 rounded-full bg-white/60 transition-all"
-                              />
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Overlay badges */}
-                        {product.stock_disponible === 0 && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <span className="text-white text-xl font-light tracking-wide">
-                              SIN STOCK
-                            </span>
-                          </div>
-                        )}
-                        {!hasValidPrice && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <span className="text-white text-xl font-light tracking-wide">
-                              PRECIO NO DISPONIBLE
-                            </span>
-                          </div>
-                        )}
-                      </figure>
-                      <div className="card-body p-6">
-                        <h2 className="card-title text-xl font-light text-base-content tracking-wide">
-                          {product.nombre_web}
-                        </h2>
-
-                        {/* Price with discount */}
-                        {product.discount_percentage > 0 ? (
-                          <div className="mb-2">
-                            <p className="text-base-content/50 font-light text-sm line-through">
-                              $
-                              {(
-                                product.precio_web ||
-                                product.sale_price ||
-                                0
-                              ).toFixed(2)}
-                            </p>
-                            <p className="text-error font-semibold text-2xl">
-                              $
-                              {(
-                                (product.precio_web ||
-                                  product.sale_price ||
-                                  0) *
-                                (1 - product.discount_percentage / 100)
-                              ).toFixed(2)}
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-primary font-light text-lg mb-2">
-                            $
-                            {(
-                              product.precio_web ||
-                              product.sale_price ||
-                              0
-                            ).toFixed(2)}
-                          </p>
-                        )}
-
-                        {/* Colors */}
-                        {uniqueColors.length > 0 && (
-                          <div className="mb-3">
-                            <p className="text-xs text-base-content/60 mb-2 font-light tracking-wide">
-                              COLORES
-                            </p>
-                            <div className="flex gap-2 flex-wrap">
-                              {uniqueColors.map(({ color, hex }) => (
-                                <div
-                                  key={color}
-                                  className="flex items-center gap-1 badge badge-outline badge-sm"
-                                >
-                                  <div
-                                    className="w-3 h-3 rounded-full border border-base-content/20"
-                                    style={{ backgroundColor: hex }}
-                                  />
-                                  <span className="font-light">{color}</span>
+                            {/* Discount Badge */}
+                            {product.discount_percentage > 0 && (
+                              <div className="absolute top-2 right-2 z-10">
+                                <div className="badge badge-error badge-lg gap-1 shadow-lg">
+                                  <span className="text-lg font-bold">
+                                    {product.discount_percentage}%
+                                  </span>
+                                  <span className="text-xs">OFF</span>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                              </div>
+                            )}
 
-                        {/* Sizes */}
-                        {uniqueSizes.length > 0 && (
-                          <div className="mb-3">
-                            <p className="text-xs text-base-content/60 mb-2 font-light tracking-wide">
-                              TALLES
-                            </p>
-                            <div className="flex gap-2 flex-wrap">
-                              {uniqueSizes.map((size) => (
-                                <span
-                                  key={size}
-                                  className="badge badge-outline badge-sm font-light"
-                                >
-                                  {size}
+                            {/* Carousel indicators */}
+                            {product.images && product.images.length > 1 && (
+                              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                                {product.images.map((_, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="w-1.5 h-1.5 rounded-full bg-white/60 transition-all"
+                                  />
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Overlay badges */}
+                            {product.stock_disponible === 0 && (
+                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <span className="text-white text-xl font-light tracking-wide">
+                                  SIN STOCK
                                 </span>
-                              ))}
+                              </div>
+                            )}
+                            {!hasValidPrice && (
+                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <span className="text-white text-xl font-light tracking-wide">
+                                  PRECIO NO DISPONIBLE
+                                </span>
+                              </div>
+                            )}
+                          </figure>
+                          <div className="card-body p-6">
+                            <h2 className="card-title text-xl font-light text-base-content tracking-wide">
+                              {product.nombre_web}
+                            </h2>
+
+                            {/* Price with discount */}
+                            {product.discount_percentage > 0 ? (
+                              <div className="mb-2">
+                                <p className="text-base-content/50 font-light text-sm line-through">
+                                  $
+                                  {(
+                                    product.precio_web ||
+                                    product.sale_price ||
+                                    0
+                                  ).toFixed(2)}
+                                </p>
+                                <p className="text-error font-semibold text-2xl">
+                                  $
+                                  {(
+                                    (product.precio_web ||
+                                      product.sale_price ||
+                                      0) *
+                                    (1 - product.discount_percentage / 100)
+                                  ).toFixed(2)}
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-primary font-light text-lg mb-2">
+                                $
+                                {(
+                                  product.precio_web ||
+                                  product.sale_price ||
+                                  0
+                                ).toFixed(2)}
+                              </p>
+                            )}
+
+                            {/* Colors */}
+                            {uniqueColors.length > 0 && (
+                              <div className="mb-3">
+                                <p className="text-xs text-base-content/60 mb-2 font-light tracking-wide">
+                                  COLORES
+                                </p>
+                                <div className="flex gap-2 flex-wrap">
+                                  {uniqueColors.map(({ color, hex }) => (
+                                    <div
+                                      key={color}
+                                      className="flex items-center gap-1 badge badge-outline badge-sm"
+                                    >
+                                      <div
+                                        className="w-3 h-3 rounded-full border border-base-content/20"
+                                        style={{ backgroundColor: hex }}
+                                      />
+                                      <span className="font-light">
+                                        {color}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Sizes */}
+                            {uniqueSizes.length > 0 && (
+                              <div className="mb-3">
+                                <p className="text-xs text-base-content/60 mb-2 font-light tracking-wide">
+                                  TALLES
+                                </p>
+                                <div className="flex gap-2 flex-wrap">
+                                  {uniqueSizes.map((size) => (
+                                    <span
+                                      key={size}
+                                      className="badge badge-outline badge-sm font-light"
+                                    >
+                                      {size}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="card-actions justify-between mt-4">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCardClick(product);
+                                }}
+                                className="btn btn-ghost btn-sm font-light tracking-wide"
+                              >
+                                VER DETALLES
+                              </button>
+                              <button
+                                onClick={(e) =>
+                                  handleAddToCartClick(product, e)
+                                }
+                                className="btn btn-primary btn-sm font-light tracking-wide gap-2"
+                                disabled={!isAvailable}
+                                title={
+                                  !hasValidPrice
+                                    ? "Precio no disponible"
+                                    : product.stock_disponible === 0
+                                    ? "Sin stock"
+                                    : "Agregar al carrito"
+                                }
+                              >
+                                <ShoppingCart size={16} />
+                                AGREGAR
+                              </button>
                             </div>
                           </div>
-                        )}
-
-                        <div className="card-actions justify-between mt-4">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCardClick(product);
-                            }}
-                            className="btn btn-ghost btn-sm font-light tracking-wide"
-                          >
-                            VER DETALLES
-                          </button>
-                          <button
-                            onClick={(e) => handleAddToCartClick(product, e)}
-                            className="btn btn-primary btn-sm font-light tracking-wide gap-2"
-                            disabled={!isAvailable}
-                            title={
-                              !hasValidPrice
-                                ? "Precio no disponible"
-                                : product.stock_disponible === 0
-                                ? "Sin stock"
-                                : "Agregar al carrito"
-                            }
-                          >
-                            <ShoppingCart size={16} />
-                            AGREGAR
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
+                        </motion.div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      <dialog ref={modalRef} className="modal">
-        <div className="modal-box">
-          {selectedProduct && (
-            <>
-              <h3 className="font-bold text-lg">
-                {selectedProduct.nombre_web}
-              </h3>
+        <dialog ref={modalRef} className="modal">
+          <div className="modal-box">
+            {selectedProduct && (
+              <>
+                <h3 className="font-bold text-lg">
+                  {selectedProduct.nombre_web}
+                </h3>
 
-              {/* Price with discount in modal */}
-              {selectedProduct.discount_percentage > 0 ? (
-                <div className="my-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="badge badge-error gap-1">
-                      <span className="font-bold">
-                        {selectedProduct.discount_percentage}%
-                      </span>
-                      <span className="text-xs">OFF</span>
+                {/* Price with discount in modal */}
+                {selectedProduct.discount_percentage > 0 ? (
+                  <div className="my-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="badge badge-error gap-1">
+                        <span className="font-bold">
+                          {selectedProduct.discount_percentage}%
+                        </span>
+                        <span className="text-xs">OFF</span>
+                      </div>
                     </div>
+                    <p className="text-base-content/50 text-sm line-through">
+                      $
+                      {(
+                        selectedProduct.precio_web ||
+                        selectedProduct.sale_price ||
+                        0
+                      ).toFixed(2)}
+                    </p>
+                    <p className="text-error text-2xl font-bold">
+                      $
+                      {(
+                        (selectedProduct.precio_web ||
+                          selectedProduct.sale_price ||
+                          0) *
+                        (1 - selectedProduct.discount_percentage / 100)
+                      ).toFixed(2)}
+                    </p>
                   </div>
-                  <p className="text-base-content/50 text-sm line-through">
+                ) : (
+                  <p className="text-primary text-xl font-bold my-4">
                     $
                     {(
                       selectedProduct.precio_web ||
@@ -954,380 +986,405 @@ export default function StorePage() {
                       0
                     ).toFixed(2)}
                   </p>
-                  <p className="text-error text-2xl font-bold">
-                    $
-                    {(
-                      (selectedProduct.precio_web ||
-                        selectedProduct.sale_price ||
-                        0) *
-                      (1 - selectedProduct.discount_percentage / 100)
-                    ).toFixed(2)}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-primary text-xl font-bold my-4">
-                  $
-                  {(
-                    selectedProduct.precio_web ||
-                    selectedProduct.sale_price ||
-                    0
-                  ).toFixed(2)}
-                </p>
-              )}
+                )}
 
-              {/* Color Selection */}
-              {getUniqueColors(selectedProduct.variantes).length > 0 && (
-                <div className="mb-4">
-                  <label className="label">
-                    <span className="label-text font-semibold">Color *</span>
-                  </label>
-                  <div className="flex gap-2 flex-wrap">
-                    {getUniqueColors(selectedProduct.variantes).map(
-                      ({ color, hex }) => (
+                {/* Color Selection */}
+                {getUniqueColors(selectedProduct.variantes).length > 0 && (
+                  <div className="mb-4">
+                    <label className="label">
+                      <span className="label-text font-semibold">Color *</span>
+                    </label>
+                    <div className="flex gap-2 flex-wrap">
+                      {getUniqueColors(selectedProduct.variantes).map(
+                        ({ color, hex }) => (
+                          <button
+                            key={color}
+                            onClick={() => setSelectedColor(color)}
+                            className={`btn btn-sm gap-2 ${
+                              selectedColor === color
+                                ? "btn-primary"
+                                : "btn-outline"
+                            }`}
+                          >
+                            <div
+                              className="w-4 h-4 rounded-full border-2 border-base-content/30"
+                              style={{ backgroundColor: hex }}
+                            />
+                            {color}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Size Selection */}
+                {getUniqueSizes(selectedProduct.variantes).length > 0 && (
+                  <div className="mb-4">
+                    <label className="label">
+                      <span className="label-text font-semibold">Talle *</span>
+                    </label>
+                    <div className="flex gap-2 flex-wrap">
+                      {getUniqueSizes(selectedProduct.variantes).map((size) => (
                         <button
-                          key={color}
-                          onClick={() => setSelectedColor(color)}
-                          className={`btn btn-sm gap-2 ${
-                            selectedColor === color
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`btn btn-sm ${
+                            selectedSize === size
                               ? "btn-primary"
                               : "btn-outline"
                           }`}
                         >
-                          <div
-                            className="w-4 h-4 rounded-full border-2 border-base-content/30"
-                            style={{ backgroundColor: hex }}
-                          />
-                          {color}
+                          {size}
                         </button>
-                      )
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Size Selection */}
-              {getUniqueSizes(selectedProduct.variantes).length > 0 && (
+                {/* Quantity */}
                 <div className="mb-4">
                   <label className="label">
-                    <span className="label-text font-semibold">Talle *</span>
+                    <span className="label-text font-semibold">Cantidad</span>
                   </label>
-                  <div className="flex gap-2 flex-wrap">
-                    {getUniqueSizes(selectedProduct.variantes).map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`btn btn-sm ${
-                          selectedSize === size ? "btn-primary" : "btn-outline"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="btn btn-circle btn-sm"
+                    >
+                      -
+                    </button>
+                    <span className="text-xl font-bold w-12 text-center">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="btn btn-circle btn-sm"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
-              )}
 
-              {/* Quantity */}
-              <div className="mb-4">
-                <label className="label">
-                  <span className="label-text font-semibold">Cantidad</span>
-                </label>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="btn btn-circle btn-sm"
-                  >
-                    -
+                <div className="modal-action">
+                  <button onClick={closeVariantModal} className="btn btn-ghost">
+                    Cancelar
                   </button>
-                  <span className="text-xl font-bold w-12 text-center">
-                    {quantity}
-                  </span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="btn btn-circle btn-sm"
+                    onClick={handleConfirmAddToCart}
+                    className="btn btn-primary gap-2"
+                    disabled={addingToCart}
                   >
-                    +
+                    {addingToCart ? (
+                      <>
+                        <span className="loading loading-spinner loading-xs"></span>
+                        Agregando...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart size={16} />
+                        Agregar al Carrito
+                      </>
+                    )}
                   </button>
                 </div>
-              </div>
+              </>
+            )}
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button onClick={closeVariantModal}>close</button>
+          </form>
+        </dialog>
 
-              <div className="modal-action">
-                <button onClick={closeVariantModal} className="btn btn-ghost">
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleConfirmAddToCart}
-                  className="btn btn-primary gap-2"
-                  disabled={addingToCart}
-                >
-                  {addingToCart ? (
-                    <>
-                      <span className="loading loading-spinner loading-xs"></span>
-                      Agregando...
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart size={16} />
-                      Agregar al Carrito
-                    </>
-                  )}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={closeVariantModal}>close</button>
-        </form>
-      </dialog>
-
-      {/* Expanded Product Card Modal */}
-      <AnimatePresence>
-        {selectedCard && (
-          <>
-            {/* Backdrop con blur */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => setSelectedCard(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-md z-40"
-              style={{ backdropFilter: "blur(10px)" }}
-            />
-
-            {/* Card expandida */}
-            <motion.div
-              className="fixed inset-0 flex items-center justify-center z-50 p-4 md:p-8"
-              onClick={() => setSelectedCard(null)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
+        {/* Expanded Product Card Modal */}
+        <AnimatePresence>
+          {selectedCard && (
+            <>
+              {/* Backdrop con blur */}
               <motion.div
-                className="bg-base-100 w-full max-w-4xl shadow-2xl rounded-lg h-[90vh] overflow-hidden flex flex-col"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                onClick={(e) => e.stopPropagation()}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setSelectedCard(null)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-40"
+                style={{ backdropFilter: "blur(10px)" }}
+              />
+
+              {/* Card expandida */}
+              <motion.div
+                className="fixed inset-0 flex items-center justify-center z-50 p-4 md:p-8"
+                onClick={() => setSelectedCard(null)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
               >
-                {/* Carousel Container */}
-                <div className="flex flex-col md:flex-row h-full">
-                  {/* Left Side - Image Gallery */}
-                  <div className="w-full md:w-1/2 h-[50vh] md:h-full relative bg-base-200 flex items-center justify-center p-4 md:p-8 flex-shrink-0">
-                    {/* Desktop: Hover Gallery */}
-                    <div className="hidden md:block w-full h-full">
-                      {selectedCard.images && selectedCard.images.length > 1 ? (
-                        /* DaisyUI Hover Gallery - For 2-10 images */
-                        <figure className="hover-gallery relative w-full h-full rounded-lg overflow-hidden shadow-xl">
-                          {selectedCard.images.slice(0, 10).map((img, idx) => (
+                <motion.div
+                  className="bg-base-100 w-full max-w-4xl shadow-2xl rounded-lg h-[90vh] flex flex-col relative"
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button - Fixed en la esquina superior derecha */}
+                  <button
+                    onClick={() => setSelectedCard(null)}
+                    className="absolute top-4 right-4 z-50 btn btn-circle btn-sm bg-base-100/90 hover:bg-base-200 shadow-lg border border-base-300"
+                    aria-label="Cerrar modal"
+                  >
+                    <X size={20} className="text-base-content" />
+                  </button>
+
+                  {/* Carousel Container */}
+                  <div className="flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
+                    {/* Left Side - Image Gallery */}
+                    <div className="w-full md:w-1/2 min-h-[300px] md:h-full relative bg-base-200 flex items-center justify-center p-4 md:p-8 md:flex-shrink-0">
+                      {/* Desktop: Hover Gallery */}
+                      <div className="hidden md:block w-full h-full">
+                        {selectedCard.images &&
+                        selectedCard.images.length > 1 ? (
+                          /* DaisyUI Hover Gallery - For 2-10 images */
+                          <figure className="hover-gallery relative w-full h-full rounded-lg overflow-hidden shadow-xl">
+                            {selectedCard.images
+                              .slice(0, 10)
+                              .map((img, idx) => (
+                                <img
+                                  key={idx}
+                                  src={getImageUrl(img)}
+                                  alt={`${selectedCard.nombre_web} - ${
+                                    idx + 1
+                                  }`}
+                                  className="w-full h-full object-contain"
+                                />
+                              ))}
+                          </figure>
+                        ) : (
+                          /* Single Image */
+                          <figure className="relative w-full h-full rounded-lg overflow-hidden shadow-xl">
                             <img
-                              key={idx}
-                              src={getImageUrl(img)}
-                              alt={`${selectedCard.nombre_web} - ${idx + 1}`}
+                              src={getImageUrl(selectedCard.images[0])}
+                              alt={selectedCard.nombre_web}
                               className="w-full h-full object-contain"
                             />
-                          ))}
-                        </figure>
-                      ) : (
-                        /* Single Image */
-                        <figure className="relative w-full h-full rounded-lg overflow-hidden shadow-xl">
+                          </figure>
+                        )}
+                      </div>
+
+                      {/* Mobile: Swipeable Carousel */}
+                      <div
+                        className="md:hidden w-full h-full relative"
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                      >
+                        <div className="relative w-full h-full rounded-lg overflow-hidden shadow-xl bg-base-300">
                           <img
-                            src={getImageUrl(selectedCard.images[0])}
-                            alt={selectedCard.nombre_web}
+                            src={getImageUrl(
+                              selectedCard.images[mobileImageIndex] ||
+                                selectedCard.images[0]
+                            )}
+                            alt={`${selectedCard.nombre_web} - ${
+                              mobileImageIndex + 1
+                            }`}
                             className="w-full h-full object-contain"
                           />
-                        </figure>
-                      )}
-                    </div>
+                        </div>
 
-                    {/* Mobile: Swipeable Carousel */}
-                    <div 
-                      className="md:hidden w-full h-[50vh] relative"
-                      onTouchStart={handleTouchStart}
-                      onTouchMove={handleTouchMove}
-                      onTouchEnd={handleTouchEnd}
-                    >
-                      <div className="relative w-full h-full rounded-lg overflow-hidden shadow-xl bg-base-300">
-                        <img
-                          src={getImageUrl(selectedCard.images[mobileImageIndex] || selectedCard.images[0])}
-                          alt={`${selectedCard.nombre_web} - ${mobileImageIndex + 1}`}
-                          className="w-full h-full object-contain"
-                        />
+                        {/* Pagination Dots - Only for multiple images */}
+                        {selectedCard.images &&
+                          selectedCard.images.length > 1 && (
+                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                              {selectedCard.images
+                                .slice(0, 10)
+                                .map((_, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => setMobileImageIndex(idx)}
+                                    className={`w-2 h-2 rounded-full transition-all ${
+                                      idx === mobileImageIndex
+                                        ? "bg-primary w-6"
+                                        : "bg-base-content/30"
+                                    }`}
+                                    aria-label={`Ver imagen ${idx + 1}`}
+                                  />
+                                ))}
+                            </div>
+                          )}
                       </div>
-                      
-                      {/* Pagination Dots - Only for multiple images */}
-                      {selectedCard.images && selectedCard.images.length > 1 && (
-                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-                          {selectedCard.images.slice(0, 10).map((_, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setMobileImageIndex(idx)}
-                              className={`w-2 h-2 rounded-full transition-all ${
-                                idx === mobileImageIndex 
-                                  ? 'bg-primary w-6' 
-                                  : 'bg-base-content/30'
-                              }`}
-                              aria-label={`Ver imagen ${idx + 1}`}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Discount Badge - Outside figure to avoid interference */}
-                    {selectedCard.discount_percentage > 0 && (
-                      <div className="absolute top-8 right-8 z-20 pointer-events-none">
-                        <div className="badge badge-error badge-lg gap-1 shadow-lg">
-                          <span className="text-lg font-bold">
-                            {selectedCard.discount_percentage}%
-                          </span>
-                          <span className="text-xs">OFF</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Image Counter - Only show for multiple images on desktop */}
-                    {selectedCard.images && selectedCard.images.length > 1 && (
-                      <div className="absolute bottom-8 right-8 bg-base-100/90 px-3 py-1.5 rounded-full text-sm font-light z-20 backdrop-blur-sm pointer-events-none hidden md:block">
-                        {selectedCard.images.length > 10 
-                          ? `10 de ${selectedCard.images.length} imágenes` 
-                          : `${selectedCard.images.length} imágenes`}
-                      </div>
-                    )}
-                    
-                    {/* Info hint for hover - Desktop only */}
-                    {selectedCard.images && selectedCard.images.length > 1 && (
-                      <div className="absolute top-8 left-8 bg-base-100/90 px-3 py-1.5 rounded-lg text-xs font-light z-20 backdrop-blur-sm pointer-events-none opacity-70 hidden md:block">
-                        ← Mueve el mouse →
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Right Side - Product Information */}
-                  <div className="w-full md:w-1/2 h-[50vh] md:h-full overflow-y-auto p-6 md:p-8 lg:p-10 bg-base-100 flex-shrink-0">
-                    <div className="max-w-xl mx-auto">
-                      <h2 className="text-3xl md:text-4xl font-light text-base-content tracking-wide mb-3">
-                        {selectedCard.nombre_web}
-                      </h2>
-                      
-                      {/* Price Section */}
-                      {selectedCard.discount_percentage > 0 ? (
-                        <div className="mb-6">
-                          <p className="text-base-content/50 font-light text-lg line-through mb-1">
-                            ${(selectedCard.precio_web || selectedCard.sale_price || 0).toFixed(2)}
-                          </p>
-                          <p className="text-error font-semibold text-3xl md:text-4xl">
-                            ${(
-                              (selectedCard.precio_web || selectedCard.sale_price || 0) *
-                              (1 - selectedCard.discount_percentage / 100)
-                            ).toFixed(2)}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-primary font-light text-3xl md:text-4xl mb-6">
-                          ${(selectedCard.precio_web || selectedCard.sale_price || 0).toFixed(2)}
-                        </p>
-                      )}
-                      
-                      <div className="w-16 h-px bg-primary/30 mb-6"></div>
-                      
-                      {/* Description */}
-                      <p className="text-base md:text-lg text-base-content/80 leading-relaxed mb-8 font-light">
-                        {selectedCard.descripcion_web || "Sin descripción disponible"}
-                      </p>
-                      
-                      {/* Stock Information */}
-                      <div className="mb-6">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-light tracking-wide text-base-content/60">
-                            DISPONIBILIDAD:
-                          </span>
-                          <span
-                            className={`badge ${
-                              selectedCard.stock_disponible > 0
-                                ? "badge-success"
-                                : "badge-error"
-                            }`}
-                          >
-                            {selectedCard.stock_disponible > 0
-                              ? `${selectedCard.stock_disponible} unidades disponibles`
-                              : "Sin stock"}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {/* Variant Details */}
-                      {selectedCard.variantes && selectedCard.variantes.length > 0 && (
-                        <div className="mb-6">
-                          <h3 className="text-sm font-light tracking-widest text-base-content/60 mb-4">
-                            VARIANTES DISPONIBLES
-                          </h3>
-                          <div className="grid grid-cols-1 gap-3">
-                            {selectedCard.variantes.map((variant) => (
-                              <div
-                                key={variant.variant_id}
-                                className="flex items-center justify-between p-4 bg-base-200/50 rounded-lg hover:bg-base-200 transition-colors"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className="w-10 h-10 rounded-full border-2 border-base-content/20 flex-shrink-0"
-                                    style={{ backgroundColor: variant.color_hex }}
-                                  ></div>
-                                  <div>
-                                    <p className="font-light text-base">
-                                      {variant.color} - Talle {variant.talle}
-                                    </p>
-                                    <p className="text-xs text-base-content/60">
-                                      Stock: {variant.stock} unidades
-                                    </p>
-                                  </div>
-                                </div>
-                                {variant.stock === 0 && (
-                                  <span className="badge badge-error badge-sm">
-                                    Sin stock
-                                  </span>
-                                )}
-                              </div>
-                            ))}
+
+                      {/* Discount Badge - Outside figure to avoid interference */}
+                      {selectedCard.discount_percentage > 0 && (
+                        <div className="absolute top-8 right-8 z-20 pointer-events-none">
+                          <div className="badge badge-error badge-lg gap-1 shadow-lg">
+                            <span className="text-lg font-bold">
+                              {selectedCard.discount_percentage}%
+                            </span>
+                            <span className="text-xs">OFF</span>
                           </div>
                         </div>
                       )}
-                      
-                      {/* Action Buttons */}
-                      <div className="flex flex-col gap-3 mt-8 pt-6 border-t border-base-300">
-                        <button
-                          className="btn btn-primary btn-lg font-light tracking-wide w-full gap-2"
-                          disabled={selectedCard.stock_disponible === 0}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedCard(null);
-                            handleAddToCartClick(selectedCard, null);
-                          }}
-                        >
-                          <ShoppingCart size={20} />
-                          {selectedCard.stock_disponible === 0
-                            ? "SIN STOCK"
-                            : "AGREGAR AL CARRITO"}
-                        </button>
-                        <button
-                          className="btn btn-ghost font-light tracking-wide w-full"
-                          onClick={() => setSelectedCard(null)}
-                        >
-                          CERRAR
-                        </button>
+
+                      {/* Image Counter - Only show for multiple images on desktop */}
+                      {selectedCard.images &&
+                        selectedCard.images.length > 1 && (
+                          <div className="absolute bottom-8 right-8 bg-base-100/90 px-3 py-1.5 rounded-full text-sm font-light z-20 backdrop-blur-sm pointer-events-none hidden md:block">
+                            {selectedCard.images.length > 10
+                              ? `10 de ${selectedCard.images.length} imágenes`
+                              : `${selectedCard.images.length} imágenes`}
+                          </div>
+                        )}
+
+                      {/* Info hint for hover - Desktop only */}
+                      {selectedCard.images &&
+                        selectedCard.images.length > 1 && (
+                          <div className="absolute top-8 left-8 bg-base-100/90 px-3 py-1.5 rounded-lg text-xs font-light z-20 backdrop-blur-sm pointer-events-none opacity-70 hidden md:block">
+                            ← Mueve el mouse →
+                          </div>
+                        )}
+                    </div>
+
+                    {/* Right Side - Product Information */}
+                    <div className="w-full md:w-1/2 md:h-full md:overflow-y-auto p-6 md:p-8 lg:p-10 bg-base-100 md:flex-shrink-0">
+                      <div className="max-w-xl mx-auto">
+                        <h2 className="text-3xl md:text-4xl font-light text-base-content tracking-wide mb-3">
+                          {selectedCard.nombre_web}
+                        </h2>
+
+                        {/* Price Section */}
+                        {selectedCard.discount_percentage > 0 ? (
+                          <div className="mb-6">
+                            <p className="text-base-content/50 font-light text-lg line-through mb-1">
+                              $
+                              {(
+                                selectedCard.precio_web ||
+                                selectedCard.sale_price ||
+                                0
+                              ).toFixed(2)}
+                            </p>
+                            <p className="text-error font-semibold text-3xl md:text-4xl">
+                              $
+                              {(
+                                (selectedCard.precio_web ||
+                                  selectedCard.sale_price ||
+                                  0) *
+                                (1 - selectedCard.discount_percentage / 100)
+                              ).toFixed(2)}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-primary font-light text-3xl md:text-4xl mb-6">
+                            $
+                            {(
+                              selectedCard.precio_web ||
+                              selectedCard.sale_price ||
+                              0
+                            ).toFixed(2)}
+                          </p>
+                        )}
+
+                        <div className="w-16 h-px bg-primary/30 mb-6"></div>
+
+                        {/* Description */}
+                        <p className="text-base md:text-lg text-base-content/80 leading-relaxed mb-8 font-light">
+                          {selectedCard.descripcion_web ||
+                            "Sin descripción disponible"}
+                        </p>
+
+                        {/* Stock Information */}
+                        <div className="mb-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-light tracking-wide text-base-content/60">
+                              DISPONIBILIDAD:
+                            </span>
+                            <span
+                              className={`badge ${
+                                selectedCard.stock_disponible > 0
+                                  ? "badge-success"
+                                  : "badge-error"
+                              }`}
+                            >
+                              {selectedCard.stock_disponible > 0
+                                ? `${selectedCard.stock_disponible} unidades disponibles`
+                                : "Sin stock"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Variant Details */}
+                        {selectedCard.variantes &&
+                          selectedCard.variantes.length > 0 && (
+                            <div className="mb-6">
+                              <h3 className="text-sm font-light tracking-widest text-base-content/60 mb-4">
+                                VARIANTES DISPONIBLES
+                              </h3>
+                              <div className="grid grid-cols-1 gap-3">
+                                {selectedCard.variantes.map((variant) => (
+                                  <div
+                                    key={variant.variant_id}
+                                    className="flex items-center justify-between p-4 bg-base-200/50 rounded-lg hover:bg-base-200 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div
+                                        className="w-10 h-10 rounded-full border-2 border-base-content/20 flex-shrink-0"
+                                        style={{
+                                          backgroundColor: variant.color_hex,
+                                        }}
+                                      ></div>
+                                      <div>
+                                        <p className="font-light text-base">
+                                          {variant.color} - Talle{" "}
+                                          {variant.talle}
+                                        </p>
+                                        <p className="text-xs text-base-content/60">
+                                          Stock: {variant.stock} unidades
+                                        </p>
+                                      </div>
+                                    </div>
+                                    {variant.stock === 0 && (
+                                      <span className="badge badge-error badge-sm">
+                                        Sin stock
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col gap-3 mt-8 pt-6 border-t border-base-300">
+                          <button
+                            className="btn btn-primary btn-lg font-light tracking-wide w-full gap-2"
+                            disabled={selectedCard.stock_disponible === 0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCard(null);
+                              handleAddToCartClick(selectedCard, null);
+                            }}
+                          >
+                            <ShoppingCart size={20} />
+                            {selectedCard.stock_disponible === 0
+                              ? "SIN STOCK"
+                              : "AGREGAR AL CARRITO"}
+                          </button>
+                          <button
+                            className="btn btn-ghost font-light tracking-wide w-full"
+                            onClick={() => setSelectedCard(null)}
+                          >
+                            CERRAR
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
