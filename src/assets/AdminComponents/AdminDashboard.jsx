@@ -1,7 +1,14 @@
 import AdminLayout from "./AdminLayout";
 import { useEffect, useState } from "react";
 import { getAdminStats } from "../services/adminService";
-import { Boxes, HandCoins, Shirt, ShoppingCart, Users } from "lucide-react";
+import {
+  Boxes,
+  HandCoins,
+  Shirt,
+  ShoppingCart,
+  Users,
+  BellRing,
+} from "lucide-react";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -210,7 +217,17 @@ export default function AdminDashboard() {
                   <span className="text-2xl mr-3">
                     <Users className="h-5 w-5 md:h-6 md:w-6" />
                   </span>
-                  Gestionar Usuarios
+                  Gestión Usuarios
+                </a>
+
+                <a
+                  href="/admin/broadcasts"
+                  className="btn btn-outline btn-info btn-md md:btn-lg justify-start"
+                >
+                  <span className="text-2xl mr-3">
+                    <BellRing className="h-5 w-5 md:h-6 md:w-6" />
+                  </span>
+                  Difusiones
                 </a>
               </div>
             </div>

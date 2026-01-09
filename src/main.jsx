@@ -23,6 +23,7 @@ import AdminProductList from "./assets/AdminComponents/AdminProductList.jsx";
 import AdminOrders from "./assets/AdminComponents/AdminOrders.jsx";
 import AdminUsers from "./assets/AdminComponents/AdminUsers.jsx";
 import AdminDiscounts from "./assets/AdminComponents/AdminDiscounts.jsx";
+import AdminBroadcasts from "./assets/AdminComponents/AdminBroadcasts.jsx";
 import { Toaster } from "react-hot-toast";
 import CheckOut from "./assets/principalComponents/CheckOut.jsx";
 import AdminNewProduct from "./assets/AdminComponents/AdminNewProduct.jsx";
@@ -138,6 +139,9 @@ function App() {
             <Route path="/admin/discounts">
               {() => <ProtectedRoute component={AdminDiscounts} />}
             </Route>
+            <Route path="/admin/broadcasts">
+              {() => <ProtectedRoute component={AdminBroadcasts} />}
+            </Route>
           </div>
         </>
       )}
@@ -150,9 +154,9 @@ createRoot(document.getElementById("root")).render(
     <AuthProvider>
       <CartProvider>
         <NotificationProvider>
-            <Router>
+          <Router>
             <App />
-            </Router>
+          </Router>
         </NotificationProvider>
       </CartProvider>
     </AuthProvider>

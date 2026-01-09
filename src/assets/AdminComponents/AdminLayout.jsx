@@ -13,6 +13,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  BellRing,
 } from "lucide-react";
 
 export default function AdminLayout({ children }) {
@@ -27,6 +28,7 @@ export default function AdminLayout({ children }) {
     { path: "/admin/orders", label: "Pedidos", icon: ShoppingCart },
     { path: "/admin/users", label: "Usuarios", icon: Users },
     { path: "/admin/discounts", label: "Descuentos", icon: TicketPercent },
+    { path: "/admin/broadcasts", label: "Difusiones", icon: BellRing },
   ];
 
   return (
@@ -63,13 +65,19 @@ export default function AdminLayout({ children }) {
         } lg:translate-x-0`}
       >
         {/* Header */}
-        <div className={`p-6 border-b border-base-300 ${sidebarCollapsed ? "px-3" : ""}`}>
+        <div
+          className={`p-6 border-b border-base-300 ${
+            sidebarCollapsed ? "px-3" : ""
+          }`}
+        >
           {!sidebarCollapsed ? (
             <>
               <h2 className="text-2xl font-bold text-primary tracking-wide">
                 Mykonos Admin
               </h2>
-              <p className="text-sm text-base-content/60 mt-1">{user?.username}</p>
+              <p className="text-sm text-base-content/60 mt-1">
+                {user?.username}
+              </p>
               <span className="badge badge-primary badge-sm mt-2">
                 Administrator
               </span>
@@ -89,7 +97,11 @@ export default function AdminLayout({ children }) {
           className="hidden lg:flex absolute -right-3 top-20 bg-primary text-primary-content rounded-full p-1 shadow-lg hover:bg-primary-focus transition-colors z-50"
           title={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
         >
-          {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {sidebarCollapsed ? (
+            <ChevronRight size={16} />
+          ) : (
+            <ChevronLeft size={16} />
+          )}
         </button>
 
         {/* Navigation */}
@@ -123,16 +135,29 @@ export default function AdminLayout({ children }) {
         </nav>
 
         {/* Footer */}
-        <div className={`absolute bottom-0 ${sidebarCollapsed ? "w-20" : "w-64"} p-6 border-t border-base-300 bg-base-100 ${sidebarCollapsed ? "px-3" : ""}`}>
+        <div
+          className={`absolute bottom-0 ${
+            sidebarCollapsed ? "w-20" : "w-64"
+          } p-6 border-t border-base-300 bg-base-100 ${
+            sidebarCollapsed ? "px-3" : ""
+          }`}
+        >
           <Link href="/">
-            <div className={`btn btn-outline btn-sm w-full mb-2 ${sidebarCollapsed ? "btn-square" : "gap-2"}`} title={sidebarCollapsed ? "Volver a la Tienda" : ""}>
+            <div
+              className={`btn btn-outline btn-sm w-full mb-2 ${
+                sidebarCollapsed ? "btn-square" : "gap-2"
+              }`}
+              title={sidebarCollapsed ? "Volver a la Tienda" : ""}
+            >
               <Home size={16} />
               {!sidebarCollapsed && "Volver a la Tienda"}
             </div>
           </Link>
           <button
             onClick={logout}
-            className={`btn btn-ghost btn-sm w-full ${sidebarCollapsed ? "btn-square" : "gap-2"}`}
+            className={`btn btn-ghost btn-sm w-full ${
+              sidebarCollapsed ? "btn-square" : "gap-2"
+            }`}
             title={sidebarCollapsed ? "Cerrar Sesión" : ""}
           >
             <LogOut size={16} />
@@ -142,7 +167,11 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <main className={`flex-1 ${sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"} p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 transition-all duration-300`}>
+      <main
+        className={`flex-1 ${
+          sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
+        } p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 transition-all duration-300`}
+      >
         {children}
       </main>
     </div>

@@ -19,10 +19,10 @@ export default function CheckOut() {
   const [location, setLocation] = useLocation();
   const { cart, refreshCart } = useCart();
   const { user, isAuthenticated } = useAuth();
-  const { addNotification } = useNotifications();
+  const { refreshNotifications } = useNotifications();
   const [currentStep, setCurrentStep] = useState(0);
 
-  const [deliveryType, setDeliveryType] = useState("delivery"); 
+  const [deliveryType, setDeliveryType] = useState("delivery");
   const [deliveryAddress, setDeliveryAddress] = useState({
     street: "",
     number: "",
@@ -31,11 +31,10 @@ export default function CheckOut() {
     postalCode: "",
     additionalInfo: "",
   });
-  const [selectedBranch, setSelectedBranch] = useState(""); 
+  const [selectedBranch, setSelectedBranch] = useState("");
 
-
-  const [paymentMethod, setPaymentMethod] = useState(""); 
-  const [invoiceType, setInvoiceType] = useState(""); 
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [invoiceType, setInvoiceType] = useState("");
   const [fiscalData, setFiscalData] = useState({
     cuit: "",
     businessName: "",
@@ -167,7 +166,7 @@ export default function CheckOut() {
     try {
       // Construir la dirección de envío como un string único
       let shippingAddress = "";
-      
+
       if (deliveryType === "delivery") {
         // Para envío a domicilio, crear dirección completa
         shippingAddress = `${deliveryAddress.street} ${deliveryAddress.number}, ${deliveryAddress.city}, ${deliveryAddress.province}`;
@@ -180,7 +179,9 @@ export default function CheckOut() {
       } else {
         // Para retiro en sucursal, usar la dirección de la sucursal
         const branch = branches.find((b) => b.id === selectedBranch);
-        shippingAddress = branch ? `Retiro en ${branch.name} - ${branch.address}` : "Retiro en sucursal";
+        shippingAddress = branch
+          ? `Retiro en ${branch.name} - ${branch.address}`
+          : "Retiro en sucursal";
       }
 
       // Calcular costo de envío
@@ -205,11 +206,8 @@ export default function CheckOut() {
       // Mostrar mensaje de éxito
       toast.success("¡Pedido creado exitosamente! Ahora completa el pago.");
 
-      addNotification({
-        title: "Pedido Creado",
-        message: `Tu pedido #${result.order_id} ha sido creado exitosamente.`,
-        type: "success",
-      });
+      // Refresh notifications to show the new order alert from backend
+      refreshNotifications();
 
       // Refrescar el carrito (debería estar vacío ahora si el backend lo vacía)
       await refreshCart();
@@ -220,9 +218,12 @@ export default function CheckOut() {
       }, 1000);
     } catch (error) {
       console.error("Error creating order:", error);
-      
+
       // Mostrar error específico del backend
-      const errorMessage = error.detail || error.message || "Error al crear el pedido. Por favor intenta nuevamente.";
+      const errorMessage =
+        error.detail ||
+        error.message ||
+        "Error al crear el pedido. Por favor intenta nuevamente.";
       toast.error(errorMessage);
     } finally {
       setProcessing(false);
@@ -240,7 +241,9 @@ export default function CheckOut() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-light tracking-widest mb-2">FINALIZAR COMPRA</h1>
+          <h1 className="text-4xl font-light tracking-widest mb-2">
+            FINALIZAR COMPRA
+          </h1>
           <div className="w-16 h-px bg-primary"></div>
         </div>
 
@@ -417,10 +420,12 @@ export default function CheckOut() {
                               }
                             />
                           </div>
-                          
+
                           <div>
                             <label className="label">
-                              <span className="label-text">Información de contacto</span>
+                              <span className="label-text">
+                                Información de contacto
+                              </span>
                             </label>
                             <input
                               type="text"
@@ -436,7 +441,6 @@ export default function CheckOut() {
                             />
                           </div>
                         </div>
-
 
                         <div className="form-control">
                           <label className="label">
@@ -543,7 +547,7 @@ export default function CheckOut() {
                               Efectivo
                             </span>
                             <p className="text-xs text-base-content/60">
-                              Pago al retirar  por sucursal
+                              Pago al retirar por sucursal
                             </p>
                           </div>
                         </label>
@@ -871,7 +875,9 @@ export default function CheckOut() {
                   <div className="flex justify-between text-sm">
                     <span className="text-base-content/60">Envío</span>
                     <span className="text-success">
-                      {deliveryType === "pickup" ? "Gratis" : "$0 (A coordinar)"}
+                      {deliveryType === "pickup"
+                        ? "Gratis"
+                        : "$0 (A coordinar)"}
                     </span>
                   </div>
                 </div>
