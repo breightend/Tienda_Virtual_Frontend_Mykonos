@@ -1,38 +1,47 @@
-import { useState, useEffect, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import AdminLayout from "./AdminLayout";
-import {
-  createBroadcast,
-  getBroadcasts,
-  uploadNotificationImage,
-} from "../services/notificationService";
 import {
   BellRing,
-  Send,
+  CheckCircle,
   Clock,
-  Users,
-  Upload,
+  Edit,
+  FileText,
   Megaphone,
-  X,
+  Save,
+  Send,
+  Upload,
+  Users,
+  X
 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
+import { useNotifications } from "../context/NotificationContext";
+import {
+  createBroadcast,
+  getAllBroadcasts,
+  updateBroadcast,
+  uploadNotificationImage,
+} from "../services/notificationService";
+import AdminLayout from "./AdminLayout";
 
 export default function AdminBroadcasts() {
+  const { refreshNotifications } = useNotifications();
   const [formData, setFormData] = useState({
     title: "",
     message: "",
     target_role: "all",
     image_url: "",
     link_url: "",
-    filename: "",
+    active: true, // Default to published
   });
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showUploadPromotion, setShowUploadPromotion] = useState(false);
+  const [editingBroadcast, setEditingBroadcast] = useState(null); // ID being edited
 
   const [isUploading, setIsUploading] = useState(false);
 
   const onDrop = useCallback(async (acceptedFiles) => {
+    // ... (same as before) ...
     const file = acceptedFiles[0];
     if (file) {
       setIsUploading(true);
@@ -62,10 +71,15 @@ export default function AdminBroadcasts() {
 
   const loadHistory = async () => {
     try {
-      const data = await getBroadcasts();
-      // Sort by date descending
+      const data = await getAllBroadcasts();
+      // Sort: Drafts first, then by date descending
       setHistory(
-        data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        data.sort((a, b) => {
+          if (a.active === b.active) {
+            return new Date(b.created_at) - new Date(a.created_at);
+          }
+          return a.active ? 1 : -1; // Drafts (active:false) first
+        })
       );
     } catch (error) {
       console.error("Error loading broadcasts:", error);
@@ -77,7 +91,40 @@ export default function AdminBroadcasts() {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
+  };
+
+  const handleEdit = (broadcast) => {
+    setEditingBroadcast(broadcast.id);
+    setFormData({
+      title: broadcast.title,
+      message: broadcast.message,
+      target_role: broadcast.target_role,
+      image_url: broadcast.image_url || "",
+      link_url: broadcast.link_url || "",
+      active: broadcast.active,
+    });
+    setShowUploadPromotion(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCleanup = async () => {
+    if (
+      !confirm(
+        "¿Estás seguro de eliminar notificaciones antiguas (más de 6 meses)?"
+      )
+    )
+      return;
+    try {
+      await cleanupNotifications();
+      toast.success("Limpieza completada");
+      loadHistory();
+    } catch (error) {
+      console.error("Error cleanup:", error);
+      toast.error("Error en limpieza");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -89,20 +136,41 @@ export default function AdminBroadcasts() {
 
     setIsLoading(true);
     try {
-      await createBroadcast(formData);
-      toast.success("Difusión enviada correctamente");
+      if (editingBroadcast) {
+        // Update existing
+        await updateBroadcast(editingBroadcast, formData);
+        toast.success(
+          formData.active
+            ? "Difusión actualizada y publicada"
+            : "Borrador actualizado"
+        );
+      } else {
+        // Create new
+        await createBroadcast(formData);
+        toast.success(
+          formData.active
+            ? "Difusión enviada correctamente"
+            : "Borrador guardado"
+        );
+      }
+
       setFormData({
         title: "",
         message: "",
         target_role: "all",
         image_url: "",
         link_url: "",
-        filename: "",
+        active: true,
       });
+      setEditingBroadcast(null);
+      setShowUploadPromotion(false);
       loadHistory(); // Refresh history
+      if (formData.active) refreshNotifications(); // Only refresh if published
     } catch (error) {
-      console.error("Error creating broadcast:", error);
-      toast.error("Error al enviar la difusión");
+      console.error("Error submit broadcast:", error);
+      toast.error(
+        error.response?.data?.detail || "Error al procesar la difusión"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -110,6 +178,17 @@ export default function AdminBroadcasts() {
 
   const toggleUploadPromotion = () => {
     setShowUploadPromotion(!showUploadPromotion);
+    if (showUploadPromotion) {
+      setEditingBroadcast(null); // Reset edit mode on close
+      setFormData({
+        title: "",
+        message: "",
+        target_role: "all",
+        image_url: "",
+        link_url: "",
+        active: true,
+      });
+    }
   };
 
   return (
@@ -144,7 +223,9 @@ export default function AdminBroadcasts() {
             ) : (
               <>
                 <Megaphone size={20} />
-                <span>Nueva Difusión</span>
+                <span>
+                  {editingBroadcast ? "Editar Difusión" : "Nueva Difusión"}
+                </span>
               </>
             )}
           </button>
@@ -152,7 +233,14 @@ export default function AdminBroadcasts() {
         {showUploadPromotion && (
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
-              <h2 className="card-title mb-6">Nueva Difusión</h2>
+              <h2 className="card-title mb-6 flex items-center gap-2">
+                {editingBroadcast ? (
+                  <Edit size={24} className="text-primary" />
+                ) : (
+                  <Megaphone size={24} className="text-primary" />
+                )}
+                {editingBroadcast ? "Editar Difusión" : "Nueva Difusión"}
+              </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="form-control">
@@ -277,16 +365,53 @@ export default function AdminBroadcasts() {
                   </div>
                 </div>
 
+                <div className="form-control mt-4">
+                  <label className="label cursor-pointer justify-start gap-4 p-4 border rounded-lg hover:bg-base-200 transition-colors w-fit">
+                    <input
+                      type="checkbox"
+                      name="active"
+                      className="toggle toggle-success"
+                      checked={formData.active}
+                      onChange={(e) =>
+                        setFormData({ ...formData, active: e.target.checked })
+                      }
+                    />
+                    <div>
+                      <span className="label-text font-bold block">
+                        {formData.active
+                          ? "Publicar Inmediatamente"
+                          : "Guardar como Borrador"}
+                      </span>
+                      <span className="label-text-alt text-base-content/60">
+                        {formData.active
+                          ? "Visible para todos los usuarios"
+                          : "Solo visible para admins"}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
                 <div className="card-actions justify-end mt-8">
                   <button
                     type="submit"
-                    className={`btn btn-primary px-8 ${
-                      isLoading ? "loading" : ""
-                    }`}
+                    className={`btn ${
+                      formData.active ? "btn-primary" : "btn-neutral"
+                    } px-8 ${isLoading ? "loading" : ""}`}
                     disabled={isLoading}
                   >
-                    {!isLoading && <Send size={20} className="mr-2" />}
-                    {isLoading ? "Enviando..." : "Enviar Difusión"}
+                    {!isLoading &&
+                      (formData.active ? (
+                        <Send size={20} className="mr-2" />
+                      ) : (
+                        <Save size={20} className="mr-2" />
+                      ))}
+                    {isLoading
+                      ? "Procesando..."
+                      : formData.active
+                      ? editingBroadcast
+                        ? "Actualizar y Publicar"
+                        : "Enviar Difusión"
+                      : "Guardar Borrador"}
                   </button>
                 </div>
               </form>
@@ -305,22 +430,38 @@ export default function AdminBroadcasts() {
             <table className="table table-zebra w-full">
               <thead>
                 <tr>
+                  <th>Estado</th>
                   <th>Fecha</th>
                   <th>Título</th>
                   <th>Mensaje</th>
                   <th>Destinatarios</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {history.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-8 opacity-50">
+                    <td colSpan="6" className="text-center py-8 opacity-50">
                       No hay difusiones enviadas aún
                     </td>
                   </tr>
                 ) : (
                   history.map((broadcast) => (
-                    <tr key={broadcast.id}>
+                    <tr
+                      key={broadcast.id}
+                      className={!broadcast.active ? "bg-base-200/50" : ""}
+                    >
+                      <td>
+                        {broadcast.active ? (
+                          <div className="badge badge-success gap-1 text-xs font-bold text-white">
+                            <CheckCircle size={12} /> PUBLICADA
+                          </div>
+                        ) : (
+                          <div className="badge badge-neutral gap-1 text-xs">
+                            <FileText size={12} /> BORRADOR
+                          </div>
+                        )}
+                      </td>
                       <td className="whitespace-nowrap opacity-70">
                         {new Date(broadcast.created_at).toLocaleDateString()}
                         <br />
@@ -342,6 +483,22 @@ export default function AdminBroadcasts() {
                             {broadcast.target_role || "Todos"}
                           </span>
                         </div>
+                      </td>
+                      <td>
+                        {!broadcast.active && (
+                          <button
+                            className="btn btn-ghost btn-sm text-primary tooltip"
+                            data-tip="Editar Borrador"
+                            onClick={() => handleEdit(broadcast)}
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
+                        {broadcast.active && (
+                          <span className="text-xs opacity-50 italic">
+                            Solo lectura
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))

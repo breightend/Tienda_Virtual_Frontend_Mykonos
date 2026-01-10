@@ -1,7 +1,9 @@
 import { useNotifications } from "../context/NotificationContext";
 import { Bell, Trash2, CheckCheck, X, BellRing } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function Notifications() {
+  const [, setLocation] = useLocation();
   const {
     notifications,
     markAsRead,
@@ -71,9 +73,19 @@ export default function Notifications() {
               return (
                 <li
                   key={`${isBroadcast ? "b" : "n"}-${notification.id}`}
-                  className={`list-row hover:bg-base-200/50 transition-colors ${
+                  className={`list-row hover:bg-base-200/50 transition-colors cursor-pointer ${
                     !notification.is_read ? "bg-base-200/30" : ""
                   }`}
+                  onClick={() => {
+                    markAsRead(notification.id, isBroadcast);
+                    if (notification.link_url) {
+                      if (notification.link_url.startsWith("http")) {
+                        window.open(notification.link_url, "_blank");
+                      } else {
+                        setLocation(notification.link_url);
+                      }
+                    }
+                  }}
                 >
                   <div className="flex items-center justify-center">
                     <div
@@ -95,33 +107,49 @@ export default function Notifications() {
                     </div>
                   </div>
 
-                  <div
-                    className="flex-1 cursor-pointer"
-                    onClick={() => markAsRead(notification.id, isBroadcast)}
-                  >
+                  <div className="flex-1">
                     <div
-                      className={`font-medium flex items-center gap-2 ${
+                      className={`font-semibold text-lg md:text-xl flex items-center gap-2 mb-1 ${
                         !notification.is_read ? "text-primary" : ""
                       }`}
                     >
                       {notification.title}
                       {isBroadcast && (
-                        <span className="badge badge-xs badge-secondary">
+                        <span className="badge badge-sm badge-secondary">
                           INFO
                         </span>
                       )}
                     </div>
-                    <div className="text-xs uppercase font-semibold opacity-60">
+                    <div className="text-sm md:text-base font-medium opacity-70 leading-relaxed">
                       {notification.message}
                     </div>
-                    <div className="text-[10px] opacity-40 mt-1">
+                    <div className="text-xs opacity-40 mt-2 font-medium">
                       {formatDate(notification.created_at)}
                     </div>
                   </div>
 
+                  {notification.image_url && (
+                    <div className="ml-4 shrink-0">
+                      <img
+                        src={
+                          notification.image_url.startsWith("http")
+                            ? notification.image_url
+                            : `${import.meta.env.VITE_API_URL}${
+                                notification.image_url
+                              }`
+                        }
+                        alt="Notification attachment"
+                        className="h-24 w-24 md:h-32 md:w-32 object-cover rounded-md border border-base-300 bg-base-100"
+                      />
+                    </div>
+                  )}
+
                   <button
                     className="btn btn-square btn-ghost"
-                    onClick={() => deleteNotification(notification.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteNotification(notification.id);
+                    }}
                   >
                     <X className="size-[1.2em]" />
                   </button>
